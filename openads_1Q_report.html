@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오픈애즈 1Q 성과 분석 & Q2 세일즈 액션플랜</title>
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #FAFAF8;
+  --surface: #FFFFFF;
+  --surface-alt: #F4F3F0;
+  --text-primary: #1A1A18;
+  --text-secondary: #6B6B66;
+  --text-tertiary: #9C9A92;
+  --border: #E5E4E0;
+  --accent-blue: #2B5EA7;
+  --accent-blue-bg: #EAF0F9;
+  --accent-green: #0F6E56;
+  --accent-green-bg: #E1F5EE;
+  --accent-coral: #B8471F;
+  --accent-coral-bg: #FAECE7;
+  --accent-purple: #534AB7;
+  --accent-purple-bg: #EEEDFE;
+  --accent-amber: #854F0B;
+  --accent-amber-bg: #FAEEDA;
+  --accent-red: #A32D2D;
+  --accent-red-bg: #FCEBEB;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+
+.report-header { margin-bottom: 56px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.report-header .label { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent-purple); margin-bottom: 12px; }
+.report-header h1 { font-size: 30px; font-weight: 700; line-height: 1.35; margin-bottom: 12px; letter-spacing: -0.5px; }
+.report-header .meta { font-size: 14px; color: var(--text-secondary); }
+.report-header .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.badge.purple { background: var(--accent-purple-bg); color: var(--accent-purple); }
+.badge.green { background: var(--accent-green-bg); color: var(--accent-green); }
+.badge.amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
+.badge.blue { background: var(--accent-blue-bg); color: var(--accent-blue); }
+.badge.coral { background: var(--accent-coral-bg); color: var(--accent-coral); }
+
+.section { margin-bottom: 56px; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 8px; }
+.section h2 { font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.3px; }
+.section h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.metric-box { background: var(--surface-alt); border-radius: var(--radius-sm); padding: 18px 16px; }
+.metric-box .label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 500; }
+.metric-box .value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.metric-box .sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.metric-box .change { font-size: 12px; font-weight: 600; margin-top: 4px; }
+.change.up { color: var(--accent-green); }
+.change.down { color: var(--accent-red); }
+.change.flat { color: var(--text-tertiary); }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.data-table thead th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-tertiary); padding: 10px 12px; border-bottom: 2px solid var(--border); letter-spacing: 0.3px; }
+.data-table thead th:not(:first-child) { text-align: right; }
+.data-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.data-table tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table .highlight { font-weight: 700; color: var(--accent-blue); }
+.data-table .dim { color: var(--text-tertiary); font-size: 13px; }
+.data-table .total-row td { font-weight: 700; background: var(--surface-alt); }
+.data-table .good { color: var(--accent-green); font-weight: 600; }
+.data-table .bad { color: var(--accent-red); font-weight: 600; }
+.data-table .ok { color: var(--accent-amber); font-weight: 600; }
+
+.interp { font-size: 13px; color: var(--text-secondary); padding: 12px 16px; background: var(--surface-alt); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-purple); margin-top: 12px; line-height: 1.65; }
+.interp strong { color: var(--text-primary); font-weight: 600; }
+
+.insight { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+.insight-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-purple-bg); color: var(--accent-purple); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.insight h4 { font-size: 16px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+.insight p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+.insight p + p { margin-top: 8px; }
+
+.callout { padding: 14px 18px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.6; margin-top: 12px; }
+.callout.green { background: var(--accent-green-bg); color: var(--accent-green); }
+.callout.coral { background: var(--accent-coral-bg); color: var(--accent-coral); }
+.callout.purple { background: var(--accent-purple-bg); color: var(--accent-purple); }
+.callout.amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
+.callout.blue { background: var(--accent-blue-bg); color: var(--accent-blue); }
+.callout strong { font-weight: 700; }
+
+.action-group { margin-bottom: 28px; }
+.action-group-title { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.action-item { display: flex; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 14px; line-height: 1.6; }
+.action-item .icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-top: 1px; }
+.action-item .icon.purple { background: var(--accent-purple-bg); }
+.action-item .icon.green { background: var(--accent-green-bg); }
+.action-item .icon.blue { background: var(--accent-blue-bg); }
+.action-item .icon.amber { background: var(--accent-amber-bg); }
+.action-item .icon.coral { background: var(--accent-coral-bg); }
+.action-item .content { flex: 1; }
+.action-item .title { font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.action-item .desc { color: var(--text-secondary); font-size: 13px; }
+.action-item .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; margin-top: 6px; }
+.action-item .tag.m4 { background: #EAF0F9; color: var(--accent-blue); }
+.action-item .tag.m5 { background: #EEEDFE; color: var(--accent-purple); }
+.action-item .tag.m6 { background: #E1F5EE; color: var(--accent-green); }
+.action-item .tag.ongoing { background: var(--surface-alt); color: var(--text-secondary); }
+
+.chart-wrap { position: relative; width: 100%; margin: 16px 0; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.chart-legend span { display: flex; align-items: center; gap: 5px; }
+.chart-legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+.divider { height: 1px; background: var(--border); margin: 40px 0; }
+
+.pipeline-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.pipeline-item .tier { flex-shrink: 0; width: 48px; }
+.tier-badge { font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 4px; text-align: center; display: inline-block; }
+.tier-badge.top { background: #FEF3C7; color: #92400E; }
+.tier-badge.mid { background: #DBEAFE; color: #1E40AF; }
+.tier-badge.low { background: var(--surface-alt); color: var(--text-tertiary); }
+.pipeline-item .info { flex: 1; }
+.pipeline-item .client { font-size: 14px; font-weight: 700; }
+.pipeline-item .detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.pipeline-item .amount { font-size: 15px; font-weight: 700; color: var(--accent-blue); text-align: right; white-space: nowrap; }
+
+.status-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.status-badge.confirmed { background: var(--accent-green-bg); color: var(--accent-green); }
+.status-badge.active { background: var(--accent-blue-bg); color: var(--accent-blue); }
+.status-badge.dropped { background: var(--surface-alt); color: var(--text-tertiary); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.month-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.month-card .month-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 6px; }
+.month-card .month-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.month-card .month-target { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.month-card .month-rate { font-size: 13px; font-weight: 700; margin-top: 4px; }
+.month-card.highlight { border-color: var(--accent-green); }
+.month-card.warn { border-color: var(--accent-coral); }
+
+.goal-bar-wrap { margin: 8px 0; }
+.goal-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.goal-bar { height: 8px; background: var(--surface-alt); border-radius: 4px; overflow: hidden; }
+.goal-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+@media (max-width: 600px) {
+  .container { padding: 32px 16px 60px; }
+  .report-header h1 { font-size: 24px; }
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="report-header">
+  <div class="label">Sales Performance Report · 2026</div>
+  <h1>오픈애즈 next finder팀<br>1Q 매출 성과 분석 & Q2 세일즈 액션플랜</h1>
+  <div class="meta">분석 기간: 2026년 1월 — 3월 (1Q) · 집행 기준 매출 현황 및 파이프라인 활동 종합</div>
+  <div class="badges">
+    <span class="badge purple">🐨 랄라 분석</span>
+    <span class="badge green">1Q 집행매출 3,685만원</span>
+    <span class="badge amber">목표 달성률 59%</span>
+    <span class="badge blue">2Q 목표 볼륨 증대</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 1: 1Q 매출 현황 요약 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 01 · Revenue Overview</div>
+  <h2>1Q 매출 현황 요약</h2>
+
+  <div class="metric-grid">
+    <div class="metric-box">
+      <div class="label">1Q 집행 매출</div>
+      <div class="value">2,335<span style="font-size:16px;font-weight:500;">만</span></div>
+      <div class="sub">1~3월 집행 완료 기준 (DMS·예정 건 제외)</div>
+      <div class="change down">목표 대비 ▼41% (목표 3,975만)</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">1Q 집행 건수</div>
+      <div class="value">7<span style="font-size:16px;font-weight:500;">건</span></div>
+      <div class="sub">1~3월 집행 완료 기준</div>
+      <div class="change up">확정·집행 완료 건 only</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">전체 제안 건수</div>
+      <div class="value">43<span style="font-size:16px;font-weight:500;">건</span></div>
+      <div class="sub">인바운드 22건 / 아웃바운드 21건</div>
+      <div class="change up">드롭 36건 · 집행완료 7건</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">25년 1Q 비교</div>
+      <div class="value">2,650<span style="font-size:16px;font-weight:500;">만</span></div>
+      <div class="sub">1월 800 + 2월 400 + 3월 1,450</div>
+      <div class="change up">YoY 기준 ▼12%</div>
+    </div>
+  </div>
+
+  <div class="interp">
+    <strong>💡 랄라 해석:</strong> 1Q 집행 완료 매출(1~3월 집행 기준)은 <strong>2,335만원</strong>으로, 목표(3,975만원, 25년 1Q×1.5) 대비 달성률 <strong>59%</strong>입니다. 25년 1Q(2,650만) 대비 YoY <strong>▼12%</strong>로, 목표와의 갭은 여전히 존재합니다. 
+    2월은 집행 건수 0건으로 <strong>완전한 공백월</strong>이 발생했고, 3월에 몰아치는 구조였습니다. 
+    월별 안정적인 파이프라인 구축이 Q2의 핵심 과제입니다.
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: 월별 매출 상세 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 02 · Monthly Breakdown</div>
+  <h2>월별 매출 성과 상세</h2>
+
+  <div class="card">
+    <h3>월별 매출 비교 (집행 기준, 만원)</h3>
+    <div class="chart-wrap" style="height:260px;">
+      <canvas id="monthlyChart"></canvas>
+    </div>
+    <div class="chart-legend">
+      <span><span class="dot" style="background:#534AB7;"></span>26년 실적</span>
+      <span><span class="dot" style="background:#C4BFF4;"></span>25년 실적</span>
+      <span><span class="dot" style="background:#E5E4E0;border:1px dashed #9C9A92;"></span>26년 목표</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>월</th>
+          <th>제안 건수</th>
+          <th>집행 건수</th>
+          <th>집행 매출</th>
+          <th>25년 실적</th>
+          <th>YoY</th>
+          <th>목표</th>
+          <th>달성률</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1월</strong></td>
+          <td>4건 <span class="dim">(in 4)</span></td>
+          <td>1건</td>
+          <td class="highlight">425만</td>
+          <td class="dim">800만</td>
+          <td class="bad">▼47%</td>
+          <td class="dim">1,200만</td>
+          <td class="bad">35%</td>
+        </tr>
+        <tr>
+          <td><strong>2월</strong></td>
+          <td>26건 <span class="dim">(in 6 / out 20)</span></td>
+          <td>0건</td>
+          <td class="highlight">0만</td>
+          <td class="dim">400만</td>
+          <td class="bad">▼100%</td>
+          <td class="dim">600만</td>
+          <td class="bad">0%</td>
+        </tr>
+        <tr>
+          <td><strong>3월</strong></td>
+          <td>13건 <span class="dim">(in 12 / out 1)</span></td>
+          <td>6건</td>
+          <td class="highlight">1,910만</td>
+          <td class="dim">1,450만</td>
+          <td class="good">▲32%</td>
+          <td class="dim">2,175만</td>
+          <td class="ok">88%</td>
+        </tr>
+        <tr class="total-row">
+          <td>1Q 합계</td>
+          <td>48건</td>
+          <td>7건 <span class="dim">(전환율 16%)</span></td>
+          <td>2,335만</td>
+          <td class="dim">2,650만</td>
+          <td class="bad">▼12%</td>
+          <td class="dim">3,975만</td>
+          <td class="ok">59%</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="interp">
+      <strong>2월 공백 원인 분석:</strong> 2월에 26건이라는 높은 제안 건수에도 불구하고 집행이 0건인 것은, 대부분 아웃바운드 제안(20건)이 드롭된 영향입니다. 
+      특히 대규모 미디어렙사 일괄 제안(모비두·버즈빌·피처링·두산매거진·리멤버·찰나·크리테오·메타) 위주였으며, 이 채널들은 리드타임이 길거나 예산 미확보 상태였던 것으로 보입니다.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: 제품/카테고리 분석 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 03 · Product & Category Analysis</div>
+  <h2>상품 유형 & 카테고리 분석</h2>
+
+  <div class="two-col">
+    <div class="card" style="margin-bottom:0;">
+      <h3>집행 상품 유형 분포 (1Q 집행 7건)</h3>
+      <div class="chart-wrap" style="height:200px;">
+        <canvas id="productChart"></canvas>
+      </div>
+      <div class="interp" style="margin-top:12px;">
+        <strong>스타터 pkg·리드전환 pkg</strong> 등 신규 패키지형 상품이 집행의 중심으로, 기존 단독/스토리형 위주에서 <strong>패키지 중심으로 전환</strong>되고 있습니다.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <h3>집행 카테고리 분포 (26년 1Q)</h3>
+      <div class="chart-wrap" style="height:200px;">
+        <canvas id="categoryChart"></canvas>
+      </div>
+      <div class="interp" style="margin-top:12px;">
+        <strong>솔루션사</strong>가 가장 많은 비중을 차지하며, 세일즈포스·틱톡·앱스플라이어 등 B2B 테크 기업의 세미나/리드 목적 집행이 주를 이룹니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>26년 1Q 집행 확정 건 상세</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>집행일</th>
+          <th style="text-align:left;">광고주</th>
+          <th style="text-align:left;">카테고리</th>
+          <th style="text-align:left;">상품</th>
+          <th>매출</th>
+          <th style="text-align:left;">구분</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="dim">1월 29일</td>
+          <td style="text-align:left;font-weight:600;">썸트렌드</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">단독</td>
+          <td class="highlight">425만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 9일</td>
+          <td style="text-align:left;font-weight:600;">틱톡 (윌비커뮤니케이션)</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">스타터 pkg</td>
+          <td class="highlight">280만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 12일</td>
+          <td style="text-align:left;font-weight:600;">이데일리 컨퍼런스</td>
+          <td style="text-align:left;" class="dim">기타</td>
+          <td style="text-align:left;" class="dim">리드전환 pkg</td>
+          <td class="highlight">450만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 17일</td>
+          <td style="text-align:left;font-weight:600;">DMS 2026</td>
+          <td style="text-align:left;" class="dim">기타</td>
+          <td style="text-align:left;" class="dim">–</td>
+          <td class="highlight">0만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 23일</td>
+          <td style="text-align:left;font-weight:600;">데이터라이즈×버즈빌</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">스타터 pkg</td>
+          <td class="highlight">280만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 24일</td>
+          <td style="text-align:left;font-weight:600;">앱스플라이어 (밴스드)</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">리드전환 pkg</td>
+          <td class="highlight">500만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">3월 31일</td>
+          <td style="text-align:left;font-weight:600;">Braze (Allison)</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">브랜드스토리 pkg</td>
+          <td class="highlight">400만</td>
+          <td style="text-align:left;"><span class="status-badge confirmed">집행완료</span></td>
+        </tr>
+        <tr>
+          <td class="dim">4월 예정</td>
+          <td style="text-align:left;font-weight:600;">올리브영 (HRPlan)</td>
+          <td style="text-align:left;" class="dim">브랜드(CPG)</td>
+          <td style="text-align:left;" class="dim">브랜드스토리 pkg</td>
+          <td class="highlight">400만</td>
+          <td style="text-align:left;"><span class="status-badge active">4월 집행</span></td>
+        </tr>
+        <tr>
+          <td class="dim">4월 예정</td>
+          <td style="text-align:left;font-weight:600;">리멤버</td>
+          <td style="text-align:left;" class="dim">광고매체사</td>
+          <td style="text-align:left;" class="dim">리드전환 pkg</td>
+          <td class="highlight">500만</td>
+          <td style="text-align:left;"><span class="status-badge active">4월 집행</span></td>
+        </tr>
+        <tr>
+          <td class="dim">5월 예정</td>
+          <td style="text-align:left;font-weight:600;">세일즈포스 AWTK</td>
+          <td style="text-align:left;" class="dim">솔루션사</td>
+          <td style="text-align:left;" class="dim">리드전환 pkg</td>
+          <td class="highlight">450만</td>
+          <td style="text-align:left;"><span class="status-badge active">5월 집행</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 4: 파이프라인 활동 분석 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 04 · Pipeline Activity</div>
+  <h2>세일즈 파이프라인 활동 분석</h2>
+
+  <div class="metric-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="metric-box">
+      <div class="label">전체 제안</div>
+      <div class="value">43건</div>
+      <div class="sub">1Q 1~3월 누적</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">드롭 건수</div>
+      <div class="value">36건</div>
+      <div class="sub">드롭률 84%</div>
+      <div class="change down">개선 필요</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">집행 전환</div>
+      <div class="value">7건</div>
+      <div class="sub">전환율 16%</div>
+      <div class="change flat">집행 완료 기준</div>
+    </div>
+    <div class="metric-box">
+      <div class="label">진행 중 (4월~)</div>
+      <div class="value">8건+</div>
+      <div class="sub">확정 3건 + 제안중 5건+</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>인바운드 vs 아웃바운드 분석</h3>
+    <div class="chart-wrap" style="height:180px;">
+      <canvas id="inoutChart"></canvas>
+    </div>
+    <div class="two-col" style="margin-top:16px; gap:12px;">
+      <div>
+        <div class="callout blue">
+          <strong>인바운드 (22건)</strong><br>
+          전환율이 상대적으로 높음. 썸트렌드·틱톡·이데일리·앱스플라이어·Braze 등 자발적 문의 후 집행으로 연결. <strong>리드 퀄리티가 높은 채널</strong>이므로 인바운드 유입 확대가 핵심.
+        </div>
+      </div>
+      <div>
+        <div class="callout coral">
+          <strong>아웃바운드 (21건)</strong><br>
+          2월에 집중된 미디어렙사 대규모 접촉이 대부분 드롭. 콜드 컨택 효율이 낮고, <strong>기존 관계사 위주로 접근해야 전환율 개선</strong> 가능. 타깃 선별 강화 필요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>4월 현재 진행 중인 파이프라인</h3>
+
+    <div class="pipeline-item">
+      <div class="tier"><span class="tier-badge top">TOP</span></div>
+      <div class="info">
+        <div class="client">세일즈포스 AI Agentic 웨비나</div>
+        <div class="detail">솔루션사 · 리드전환 pkg · 제안 4/7 · 4/23 웨비나</div>
+      </div>
+      <div class="amount">375만</div>
+    </div>
+
+    <div class="pipeline-item">
+      <div class="tier"><span class="tier-badge top">TOP</span></div>
+      <div class="info">
+        <div class="client">BytePlus AI day Korea</div>
+        <div class="detail">솔루션사 · 리드전환 pkg · 제안 4/8 · 4/23 행사</div>
+      </div>
+      <div class="amount">375만</div>
+    </div>
+
+    <div class="pipeline-item">
+      <div class="tier"><span class="tier-badge top">TOP</span></div>
+      <div class="info">
+        <div class="client">Flow (AX Festa 2026)</div>
+        <div class="detail">솔루션사 · 리드전환 pkg · 제안 4/8 · 6/25 행사</div>
+      </div>
+      <div class="amount">375만</div>
+    </div>
+
+    <div class="pipeline-item">
+      <div class="tier"><span class="tier-badge low">LOW</span></div>
+      <div class="info">
+        <div class="client">다산북스 《우리는 광고비 없이 AI로 팝니다》</div>
+        <div class="detail">도서/출판사 · 브랜드스토리 pkg · 제안 4/7</div>
+      </div>
+      <div class="amount">400만</div>
+    </div>
+
+    <div class="pipeline-item">
+      <div class="tier"><span class="tier-badge mid">MID</span></div>
+      <div class="info">
+        <div class="client">한국경제인협회 국제경영원 (IMI)</div>
+        <div class="detail">기타 · 리드전환 pkg · 제안 4/6 · 세미나 홍보</div>
+      </div>
+      <div class="amount">375만</div>
+    </div>
+
+    <div class="interp" style="margin-top:8px;">
+      <strong>4월 파이프라인 예상 매출:</strong> 현재 집행 확정된 올리브영(400만)·리멤버(500만) 포함, 진행 중 건이 모두 전환될 경우 4월만 <strong>약 2,400만원</strong> 가능. 
+      하지만 제안 단계 건들은 아직 드롭 가능성이 있어 <strong>최소 900만 ~ 최대 2,400만 범위</strong>로 예상됩니다.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 5: 1Q 핵심 인사이트 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 05 · Key Insights</div>
+  <h2>1Q를 통해 발견한 핵심 인사이트</h2>
+
+  <div class="insight">
+    <div class="insight-num">1</div>
+    <h4>🎯 패키지 상품 전환이 매출 상승을 견인</h4>
+    <p>3월에 집중된 집행들은 기존 단독/스토리형이 아닌 <strong>스타터 pkg, 리드전환 pkg, 브랜드스토리 pkg</strong> 위주입니다. 패키지형 상품은 단가가 280~500만원 수준으로, 1Q 평균 단가 <strong>334만원(2,335만/7건)</strong>을 기록했습니다. 과거 단독 상품 위주 대비 객단가가 높아지는 구조입니다.</p>
+    <p>Q2에서는 패키지 상품의 제안 비중을 더욱 높이고, 고객 유형별 맞춤 패키지 구성을 강화해야 합니다.</p>
+  </div>
+
+  <div class="insight">
+    <div class="insight-num">2</div>
+    <h4>⚠️ 2월 공백 = 월별 파이프라인 관리 부재</h4>
+    <p>2월은 26건 제안에도 불구하고 집행 0건이었습니다. 아웃바운드 위주의 대규모 접촉이 모두 드롭되었는데, 이는 <strong>집행 시기와 고객 예산 사이클이 맞지 않은 것</strong>이 주된 원인으로 보입니다.</p>
+    <p>Q2에서는 4~6월 각 월마다 <strong>집행 확정 건을 최소 2~3개씩 확보</strong>하는 선행 파이프라인 관리가 필요합니다. 특히 행사 일정 기반 광고주(세미나/웨비나)는 <strong>D-4~6주 전에 제안을 완료</strong>하는 것이 핵심입니다.</p>
+  </div>
+
+  <div class="insight">
+    <div class="insight-num">3</div>
+    <h4>📈 솔루션사 카테고리가 핵심 고객군</h4>
+    <p>1Q 집행의 대부분이 <strong>솔루션사(세일즈포스, 틱톡, 앱스플라이어, Braze, 썸트렌드)</strong>에 집중되었습니다. 이들은 B2B 마케팅 솔루션 회사로, 오픈애즈 독자(마케터)가 <strong>직접 타깃 고객</strong>이기 때문에 광고 효율이 높고 재집행 가능성도 높습니다.</p>
+    <p>Q2에는 솔루션사 DB를 체계적으로 구축하고, <strong>기집행 고객 리텐션(재계약)과 유사 고객 신규 발굴</strong>을 병행해야 합니다.</p>
+  </div>
+
+  <div class="insight">
+    <div class="insight-num">4</div>
+    <h4>🌱 인바운드 리드의 전환율이 아웃바운드를 압도</h4>
+    <p>3월 집행 확정 건들(이데일리·앱스플라이어·Braze·틱톡)은 모두 인바운드 채널에서 유입되었습니다. 반면 2월 아웃바운드 대규모 접촉은 전환율이 0%에 가까웠습니다.</p>
+    <p>Q2에서는 <strong>사이트 광고 효율 케이스스터디 발행, 리드넛 활용, 뉴스레터 내 광고상품 노출</strong> 등을 통해 인바운드 유입 채널을 다양화하고 강화해야 합니다.</p>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 6: Q2 목표 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 06 · Q2 Goals</div>
+  <h2>2분기 (4~6월) 매출 목표 설정</h2>
+
+  <div class="card">
+    <h3>Q2 월별 목표 (집행 기준)</h3>
+    <div class="two-col">
+      <div class="month-card highlight">
+        <div class="month-label">4월 목표</div>
+        <div class="month-value">1,650만</div>
+        <div class="month-target">25년 실적: 1,100만원</div>
+        <div class="month-rate" style="color:var(--accent-green);">YoY +50% 목표</div>
+        <div class="goal-bar-wrap" style="margin-top:10px;">
+          <div class="goal-bar-label"><span>현재 확정</span><span>900만 (55%)</span></div>
+          <div class="goal-bar"><div class="goal-bar-fill" style="width:55%; background:var(--accent-green);"></div></div>
+        </div>
+        <div class="callout green" style="margin-top:10px; font-size:13px;">올리브영 400만 + 리멤버 500만 = 900만 <strong>확정</strong>. 추가 750만 필요.</div>
+      </div>
+      <div class="month-card">
+        <div class="month-label">5월 목표</div>
+        <div class="month-value">2,220만</div>
+        <div class="month-target">25년 실적: 1,480만원</div>
+        <div class="month-rate" style="color:var(--accent-blue);">YoY +50% 목표</div>
+        <div class="goal-bar-wrap" style="margin-top:10px;">
+          <div class="goal-bar-label"><span>현재 확정</span><span>450만 (20%)</span></div>
+          <div class="goal-bar"><div class="goal-bar-fill" style="width:20%; background:var(--accent-blue);"></div></div>
+        </div>
+        <div class="callout blue" style="margin-top:10px; font-size:13px;">세일즈포스 AWTK 450만 확정. 추가 파이프라인 <strong>집중 필요</strong>.</div>
+      </div>
+    </div>
+    <div class="month-card" style="margin-top:16px;">
+      <div class="month-label">6월 목표</div>
+      <div class="month-value">1,725만</div>
+      <div class="month-target">25년 실적: 1,150만원 | YoY +50% 목표</div>
+      <div class="goal-bar-wrap" style="margin-top:10px;">
+        <div class="goal-bar-label"><span>현재 확정</span><span>0만 (0%)</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:0%; background:var(--accent-purple);"></div></div>
+      </div>
+      <div class="callout amber" style="margin-top:10px; font-size:13px;">현재 파이프라인 0건. <strong>4~5월 중에 6월 집행 건 선확보 필수.</strong> Flow AX Festa(6/25) 등 행사성 광고주 집중 공략 필요.</div>
+    </div>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+      <div class="metric-grid" style="grid-template-columns: repeat(3,1fr);">
+        <div class="metric-box">
+          <div class="label">Q2 합계 목표</div>
+          <div class="value">5,595<span style="font-size:16px;">만</span></div>
+          <div class="sub">YoY +50% 기준</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">현재 확정 매출</div>
+          <div class="value">1,350<span style="font-size:16px;">만</span></div>
+          <div class="sub">올리브영·리멤버·세일즈포스</div>
+          <div class="change down">목표 대비 24%</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">추가 확보 필요</div>
+          <div class="value">4,245<span style="font-size:16px;">만</span></div>
+          <div class="sub">약 10~15건 추가 집행 필요</div>
+          <div class="change flat">건당 평균 350만 기준</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 7: Q2 넥스트 액션 플랜 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 07 · Next Action Plan</div>
+  <h2>Q2 세일즈 볼륨 증대 액션플랜</h2>
+
+  <div class="card">
+    <div class="callout purple" style="margin-bottom:20px;">
+      <strong>🎯 Q2 핵심 전략 방향:</strong> ① 인바운드 리드 품질 강화 ② 행사성 광고주 선제적 파이프라인 구축 ③ 기존 고객 재계약·업셀 ④ 신규 카테고리 확장
+    </div>
+
+    <div class="action-group">
+      <div class="action-group-title">🔥 Priority 1 · 즉시 실행 (4월 내)</div>
+
+      <div class="action-item">
+        <div class="icon purple">🎯</div>
+        <div class="content">
+          <div class="title">4월 확정 건 추가 확보: 파이프라인 집중 관리</div>
+          <div class="desc">현재 4월 파이프라인에 있는 세일즈포스(4/23 웨비나), BytePlus(4/23 행사), 한국경제인협회 3건에 대해 이번 주 내 의사결정 가속화. 특히 D-2주 이내 행사인 세일즈포스·BytePlus는 <strong>4월 12일 전에 계약 완료</strong> 목표.</div>
+          <span class="tag m4">4월 즉시</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon green">🔄</div>
+        <div class="content">
+          <div class="title">기집행 고객 리텐션 캠페인: 재계약·업셀 추진</div>
+          <div class="desc">1Q 집행 완료 고객(썸트렌드·틱톡·이데일리·앱스플라이어·Braze·데이터라이즈×버즈빌) 대상 성과 리포트 공유 → 재계약 또는 상위 패키지 업셀 제안. 특히 <strong>세일즈포스는 AWTK(5월)에 이어 추가 행사 제안 검토</strong>.</div>
+          <span class="tag m4">4월 즉시</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon blue">📋</div>
+        <div class="content">
+          <div class="title">솔루션사 타깃 DB 정비 및 분기 행사 캘린더 구축</div>
+          <div class="desc">국내외 B2B 솔루션사(마테크, 애드테크, CRM/CDP, 리드젠 툴)의 상반기 세미나·웨비나·컨퍼런스 일정 수집 → 집행 적기(행사 D-4~6주) 기준으로 제안 일정표 수립. <strong>매월 1일 기준 해당 월+다음 달 행사 일정 업데이트</strong> 루틴화.</div>
+          <span class="tag m4">4월 즉시</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon amber">🎓</div>
+        <div class="content">
+          <div class="title">후기 모집 대학원 타깃 스타터 패키지 최소 10곳 제안</div>
+          <div class="desc">오픈애즈 독자 중 커리어 전환·자기계발에 관심 높은 마케터를 타깃으로 하는 경영대학원·MBA·마케팅 특화 대학원 프로그램의 후기 모집 시즌(4~5월)에 맞춰 스타터 패키지 집중 제안. 주요 타깃: 서울대·연세대·고려대·성균관대·이화여대·한양대 등 경영전문대학원 및 디지털마케팅 특화 과정. <strong>4월 내 최소 10곳 리스트업 및 제안서 발송 완료</strong>.</div>
+          <span class="tag m4">4월 즉시</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon coral">🔍</div>
+        <div class="content">
+          <div class="title">리드전환 대상 타깃 지속 모색</div>
+          <div class="desc">리드전환 pkg의 핵심 고객군인 B2B 솔루션사·컨퍼런스 주최사 외, <strong>신규 리드전환 수요가 있는 카테고리</strong>(교육기관, 채용플랫폼, SaaS 기업, 금융투자사 등)를 지속적으로 탐색. 매주 업계 이벤트 DB·링크드인·마케터 커뮤니티를 모니터링하여 리드전환 니즈가 있는 잠재 광고주를 발굴하고 <strong>롤링 방식으로 파이프라인에 추가</strong>.</div>
+          <span class="tag m4">4월 즉시</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <div class="action-group-title">📌 Priority 2 · 5월 볼륨 확보</div>
+
+      <div class="action-item">
+        <div class="icon amber">🌿</div>
+        <div class="content">
+          <div class="title">도서/출판사 카테고리 확장: 북스토리 패키지 적극 제안</div>
+          <div class="desc">1Q에서 다산북스 등 출판사 인바운드 증가 추세. 《우리는 광고비 없이 AI로 팝니다》 등 마케터 대상 도서의 경우 오픈애즈 독자와 핏이 높음. <strong>출판사 전담 제안 템플릿(북스토리 pkg)</strong> 제작 후 주요 출판사 10곳 동시 제안.</div>
+          <span class="tag m5">5월</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon purple">✉️</div>
+        <div class="content">
+          <div class="title">뉴스레터 내 광고 노출 강화 및 인바운드 유입 채널 확대</div>
+          <div class="desc">오픈애즈 뉴스레터(6만+ 구독자) 내 광고 상품 홍보 섹션 신설 또는 자체 광고 공간 활용 → 광고주 인바운드 유입 증가 유도. 광고 효율 케이스스터디(실제 집행사의 CTR, 전환 수 등)를 콘텐츠화하여 <strong>신뢰도 기반 인바운드 제안서 소재</strong>로 활용.</div>
+          <span class="tag m5">5월</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon coral">🤝</div>
+        <div class="content">
+          <div class="title">대행사 채널 재활성화: 핵심 디지털 대행사 집중 공략</div>
+          <div class="desc">2월 대규모 아웃바운드 드롭의 교훈을 바탕으로, 기존에 집행 이력 있는 대행사(UDM, 피컴즈, 윌비커뮤니케이션, OUS) 담당자에게 <strong>분기별 광고 상품 업데이트 브리핑</strong> 제공. 콜드 컨택이 아닌 관계 기반 접근으로 전환율 개선.</div>
+          <span class="tag m5">5월</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <div class="action-group-title">🌟 Priority 3 · 6월 선확보 및 하반기 준비</div>
+
+      <div class="action-item">
+        <div class="icon green">📅</div>
+        <div class="content">
+          <div class="title">6월 행사성 광고주 선제 공략: Flow AX Festa 등</div>
+          <div class="desc">현재 파이프라인에 있는 Flow(6/25 AX Festa 2026) 계약 확정 추진. 추가로 6월 컨퍼런스·세미나 예정 기업을 인터넷 이벤트 DB, 마케터 커뮤니티 공지 등을 통해 발굴. <strong>5월 15일 전까지 6월 집행 2건 이상 확보</strong>를 목표로 설정.</div>
+          <span class="tag m6">6월 선확보</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon blue">💡</div>
+        <div class="content">
+          <div class="title">신규 광고 상품 검토: 패키지 라인업 확장</div>
+          <div class="desc">현재 스타터 pkg(280만) / 리드전환 pkg(375~500만) / 브랜드스토리 pkg(400만) 라인업에서, <strong>중간 단가 상품(200~250만 미니 패키지)</strong> 또는 <strong>성과 보장형 상품(CPC 기반)</strong> 검토. 진입 장벽이 낮아 신규 광고주 유입에 유리.</div>
+          <span class="tag m6">6월 준비</span>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="icon amber">📊</div>
+        <div class="content">
+          <div class="title">브랜드(CPG) 카테고리 신규 개척</div>
+          <div class="desc">올리브영(3월 확정) 성공 사례를 기반으로 CPG 브랜드(뷰티, F&B, 생활용품) 타깃 접근. 오픈애즈 독자 중 20~30대 실무 마케터 비중이 높으므로 <strong>브랜드 인지도·취업 시즌 연계 캠페인</strong> 각도로 제안. 하반기 대비 레퍼런스 확보 목적.</div>
+          <span class="tag ongoing">하반기 준비</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 8: 요약 -->
+<!-- ============================================ -->
+<div class="section">
+  <div class="section-label">Section 08 · Summary</div>
+  <h2>랄라의 종합 요약 🐨</h2>
+
+  <div class="card">
+    <p style="font-size:14px; color:var(--text-secondary); line-height:1.8;">
+      2026년 1Q는 <strong style="color:var(--text-primary)">YoY +39% 성장</strong>이라는 긍정적인 신호를 보였지만, 내부 목표 달성률 59%와 2월 공백이라는 과제를 남겼습니다.
+      3월에 확인된 <strong style="color:var(--text-primary)">패키지 상품·솔루션사·인바운드 전환</strong>이라는 세 가지 성공 패턴을 Q2에서 체계적으로 반복하는 것이 핵심입니다.
+    </p>
+    <div class="callout green" style="margin-top:16px;">
+      <strong>Q2 세 가지 핵심 과제:</strong><br>
+      ① <strong>월별 공백 없애기</strong> — 4·5·6월 각각 최소 2~3건 집행 선확보<br>
+      ② <strong>솔루션사·행사성 광고주 DB 구축</strong> — 행사 D-4~6주 전 제안 루틴화<br>
+      ③ <strong>인바운드 채널 강화</strong> — 케이스스터디 콘텐츠, 뉴스레터 활용 광고주 유입 유도
+    </div>
+    <div class="callout amber" style="margin-top:12px;">
+      <strong>Q2 현실적 목표 범위:</strong> 확정 매출 1,350만 + 파이프라인 전환 최적 시나리오 기준 <strong>4,000~5,600만원</strong> 범위. 월 평균 1,865만원 이상 달성 시 5,595만원 목표 달성 가능.
+    </div>
+
+
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// Monthly Revenue Chart
+const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: ['1월', '2월', '3월'],
+    datasets: [
+      {
+        label: '26년 실적',
+        data: [425, 0, 1910],
+        backgroundColor: '#534AB7',
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: '25년 실적',
+        data: [800, 400, 1450],
+        backgroundColor: '#C4BFF4',
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: '26년 목표',
+        data: [1200, 600, 2175],
+        backgroundColor: 'transparent',
+        borderColor: '#9C9A92',
+        borderWidth: 2,
+        borderDash: [4, 4],
+        type: 'line',
+        pointRadius: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: '#F4F3F0' },
+        ticks: { callback: v => v + '만', font: { size: 11 }, color: '#9C9A92' }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 13 }, color: '#6B6B66' } }
+    }
+  }
+});
+
+// Product Chart
+const ctx2 = document.getElementById('productChart').getContext('2d');
+new Chart(ctx2, {
+  type: 'doughnut',
+  data: {
+    labels: ['리드전환 pkg', '스타터 pkg', '브랜드스토리 pkg', '단독', '기타(DMS)'],
+    datasets: [{
+      data: [2, 2, 1, 1, 1],
+      backgroundColor: ['#534AB7', '#2B5EA7', '#0F6E56', '#854F0B', '#E5E4E0'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, color: '#6B6B66' } }
+    }
+  }
+});
+
+// Category Chart
+const ctx3 = document.getElementById('categoryChart').getContext('2d');
+new Chart(ctx3, {
+  type: 'doughnut',
+  data: {
+    labels: ['솔루션사', '기타(컨퍼런스)', '브랜드(CPG)', '광고매체사'],
+    datasets: [{
+      data: [5, 1, 0, 1],
+      backgroundColor: ['#534AB7', '#854F0B', '#0F6E56', '#2B5EA7'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, color: '#6B6B66' } }
+    }
+  }
+});
+
+// In/Out Chart
+const ctx4 = document.getElementById('inoutChart').getContext('2d');
+new Chart(ctx4, {
+  type: 'bar',
+  data: {
+    labels: ['1월', '2월', '3월'],
+    datasets: [
+      {
+        label: '인바운드',
+        data: [4, 6, 12],
+        backgroundColor: '#2B5EA7',
+        borderRadius: 4,
+        borderSkipped: false,
+      },
+      {
+        label: '아웃바운드',
+        data: [0, 20, 1],
+        backgroundColor: '#B8471F',
+        borderRadius: 4,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, color: '#6B6B66' } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        stacked: false,
+        grid: { color: '#F4F3F0' },
+        ticks: { font: { size: 11 }, color: '#9C9A92', stepSize: 5 }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 13 }, color: '#6B6B66' } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

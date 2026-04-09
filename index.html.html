@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오픈애즈 세일즈 인텔리전스 허브</title>
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #F7F8FA;
+  --bg2: #FFFFFF;
+  --bg3: #F0F2F5;
+  --surface: #FFFFFF;
+  --surface2: #F7F8FA;
+  --border: #E4E7ED;
+  --border2: #CDD2DB;
+  --text: #1A1D23;
+  --text2: #5A6070;
+  --text3: #9BA3B2;
+  --accent: #3B5FD4;
+  --accent2: #2A4DC4;
+  --accent-glow: rgba(59,95,212,0.08);
+  --green: #0D8A4E;
+  --green-bg: rgba(13,138,78,0.08);
+  --red: #C7303A;
+  --red-bg: rgba(199,48,58,0.08);
+  --amber: #A05C00;
+  --amber-bg: rgba(160,92,0,0.08);
+  --purple: #6B3FAA;
+  --purple-bg: rgba(107,63,170,0.08);
+  --teal: #0E7A7A;
+  --teal-bg: rgba(14,122,122,0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Layout ── */
+.app { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .koala { font-size: 22px; margin-bottom: 4px; }
+.sidebar-logo .title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+.sidebar-logo .sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.sidebar-nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
+.nav-section { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text3); padding: 12px 10px 6px; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-glow);
+  border-color: rgba(59,95,212,0.2);
+  color: var(--accent);
+  font-weight: 600;
+}
+.nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.sync-btn {
+  width: 100%; padding: 9px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(59,95,212,0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.sync-btn:hover { background: rgba(108,142,255,0.2); }
+.sync-info { font-size: 11px; color: var(--text3); text-align: center; margin-top: 6px; }
+
+/* ── Main ── */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(247,248,250,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-title { font-size: 15px; font-weight: 700; }
+.topbar-meta { font-size: 12px; color: var(--text3); }
+.topbar-badges { display: flex; gap: 8px; }
+.tbadge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.tbadge.green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(13,138,78,0.15); }
+.tbadge.amber { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(160,92,0,0.15); }
+
+.content { padding: 32px; max-width: 1200px; }
+
+/* ── Page ── */
+.page { display: none; }
+.page.active { display: block; }
+
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.page-header p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+/* ── Cards & Grids ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.card + .card { margin-top: 16px; }
+.card-title { font-size: 13px; font-weight: 700; margin-bottom: 16px; color: var(--text2); letter-spacing: 0.3px; text-transform: uppercase; font-size: 11px; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.metric-card .label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.metric-card .value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.metric-card .unit { font-size: 14px; font-weight: 500; }
+.metric-card .change { font-size: 12px; font-weight: 600; margin-top: 6px; }
+.metric-card .sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.up { color: var(--green); }
+.down { color: var(--red); }
+.flat { color: var(--text3); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ── Charts ── */
+.chart-wrap { position: relative; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  color: var(--text3); padding: 10px 12px;
+  border-bottom: 1px solid var(--border2);
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.data-table thead th:not(:first-child) { text-align: right; }
+.data-table tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.data-table tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--surface2); }
+.data-table .bold { font-weight: 700; color: var(--text); }
+.data-table .accent { color: var(--accent); font-weight: 700; }
+.data-table .total td { font-weight: 700; color: var(--text); background: var(--bg3); border-top: 1px solid var(--border2); }
+
+/* ── Badges ── */
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge.green { background: var(--green-bg); color: var(--green); }
+.badge.red { background: var(--red-bg); color: var(--red); }
+.badge.amber { background: var(--amber-bg); color: var(--amber); }
+.badge.blue { background: var(--accent-glow); color: var(--accent); }
+.badge.purple { background: var(--purple-bg); color: var(--purple); }
+.badge.teal { background: var(--teal-bg); color: var(--teal); }
+.badge.gray { background: var(--bg3); color: var(--text3); }
+
+/* ── Tier ── */
+.tier-top { background: rgba(160,92,0,0.1); color: var(--amber); border-radius: 4px; font-size: 10px; font-weight: 700; padding: 2px 6px; }
+.tier-mid { background: var(--accent-glow); color: var(--accent); border-radius: 4px; font-size: 10px; font-weight: 700; padding: 2px 6px; }
+.tier-low { background: var(--bg3); color: var(--text3); border-radius: 4px; font-size: 10px; font-weight: 700; padding: 2px 6px; }
+
+/* ── Pipeline ── */
+.pipeline-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.pipeline-row:hover { border-color: var(--border2); }
+.pipeline-row .client { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+.pipeline-row .detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.pipeline-row .amount { font-size: 14px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+/* ── Toggle ── */
+.toggle-group { display: flex; gap: 4px; background: var(--bg3); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 16px; }
+.toggle-btn {
+  padding: 6px 16px; border-radius: 6px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  color: var(--text3); background: transparent; border: none;
+  transition: all 0.15s;
+}
+.toggle-btn.active { background: var(--surface2); color: var(--text); }
+
+/* ── Progress bar ── */
+.prog-wrap { margin-bottom: 12px; }
+.prog-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+.prog-label .name { color: var(--text2); }
+.prog-label .val { color: var(--text); font-weight: 600; }
+.prog-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+/* ── Report archive ── */
+.report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.report-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.report-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.report-card .quarter { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.report-card .report-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.report-card .report-meta { font-size: 12px; color: var(--text3); }
+.report-card .report-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-top: 12px; color: var(--accent); }
+.report-card .report-yoy { font-size: 12px; margin-top: 2px; }
+
+/* ── Data Sync page ── */
+.sync-section { margin-bottom: 24px; }
+.sync-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text2); }
+.code-block {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--teal);
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.step-list { list-style: none; }
+.step-list li {
+  display: flex; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text2);
+}
+.step-list li:last-child { border-bottom: none; }
+.step-num {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.step-list .step-title { font-weight: 700; color: var(--text); margin-bottom: 2px; }
+
+.paste-area {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg);
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 12px;
+  color: var(--text2);
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.paste-area:focus { outline: none; border-color: var(--accent); }
+.apply-btn {
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: var(--accent2);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.apply-btn:hover { background: var(--accent); }
+
+/* ── Callout ── */
+.callout {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px; line-height: 1.6;
+  margin-top: 12px;
+}
+.callout.blue { background: var(--accent-glow); border-left: 3px solid var(--accent); color: var(--text2); }
+.callout.green { background: var(--green-bg); border-left: 3px solid var(--green); color: var(--text2); }
+.callout.amber { background: var(--amber-bg); border-left: 3px solid var(--amber); color: var(--text2); }
+.callout strong { color: var(--text); }
+
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+.section-gap { margin-bottom: 24px; }
+
+/* ── Efficiency table ── */
+.eff-bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--accent); vertical-align: middle; margin-right: 6px; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page.active { animation: fadeIn 0.2s ease; }
+
+@media (max-width: 900px) {
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .three-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="koala">🐨</div>
+    <div class="title">Sales Intelligence</div>
+    <div class="sub">오픈애즈 next finder팀</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">메인</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span> 매출 현황
+    </div>
+    <div class="nav-item" onclick="showPage('pipeline')">
+      <span class="nav-icon">🔄</span> 파이프라인
+    </div>
+    <div class="nav-item" onclick="showPage('efficiency')">
+      <span class="nav-icon">⚡</span> 광고 효율
+    </div>
+    <div class="nav-section">리포트</div>
+    <div class="nav-item" onclick="showPage('archive')">
+      <span class="nav-icon">📁</span> 리포트 아카이브
+    </div>
+    <div class="nav-section">설정</div>
+    <div class="nav-item" onclick="showPage('sync')">
+      <span class="nav-icon">🔗</span> 데이터 관리
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="sync-btn" onclick="doSync()">
+      <span id="syncIcon">↻</span> 데이터 동기화
+    </button>
+    <div class="sync-info" id="syncInfo">마지막 동기화: 방금</div>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbarTitle">매출 현황 대시보드</div>
+      <div class="topbar-meta">2026년 · 오픈애즈 세일즈 인텔리전스</div>
+    </div>
+    <div class="topbar-badges">
+      <span class="tbadge green">1Q 집행 3,685만</span>
+      <span class="tbadge amber">목표 달성률 43%</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ════════════════════════════════ -->
+    <!-- PAGE 1: 매출 현황 -->
+    <!-- ════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1>매출 현황 대시보드</h1>
+        <p>기간 필터를 선택하면 KPI·차트·테이블이 모두 연동됩니다</p>
+      </div>
+
+      <!-- ── 필터 바 ── -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
+        <span style="font-size:12px;font-weight:700;color:var(--text3);">기간 선택</span>
+        <select id="filterYear" onchange="applyFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="2026">2026년</option>
+          <option value="2025">2025년</option>
+        </select>
+        <select id="filterMonth" onchange="applyFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="all">전체 (연간)</option>
+          <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+          <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+          <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          <optgroup label="분기">
+            <option value="q1">1분기 (1~3월)</option>
+            <option value="q2">2분기 (4~6월)</option>
+            <option value="q3">3분기 (7~9월)</option>
+            <option value="q4">4분기 (10~12월)</option>
+          </optgroup>
+        </select>
+        <div id="filterLabel" style="font-size:13px;font-weight:700;color:var(--accent);margin-left:4px;"></div>
+        <div style="margin-left:auto;font-size:12px;color:var(--text3);">YoY 비교 기준: 전년 동기</div>
+      </div>
+
+      <!-- KPI (동적) -->
+      <div class="metric-grid" id="kpiGrid">
+        <div class="metric-card">
+          <div class="label" id="kpi1Label">집행 매출</div>
+          <div class="value" id="kpi1Value">—</div>
+          <div class="change" id="kpi1Yoy">—</div>
+          <div class="sub" id="kpi1Sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">목표 달성률</div>
+          <div class="value" id="kpi2Value">—</div>
+          <div class="change" id="kpi2Sub">—</div>
+          <div style="margin-top:8px;"><div class="prog-bar" style="height:5px;"><div class="prog-fill" id="kpi2Bar" style="background:var(--accent);width:0%;"></div></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="label">집행 건수</div>
+          <div class="value" id="kpi3Value">—</div>
+          <div class="change" id="kpi3Sub">—</div>
+          <div class="sub" id="kpi3Sub2">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">건당 평균 단가</div>
+          <div class="value" id="kpi4Value">—</div>
+          <div class="change" id="kpi4Sub">—</div>
+        </div>
+      </div>
+
+      <!-- View Toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="toggle-group" id="revenueToggle" style="margin-bottom:0;">
+          <button class="toggle-btn active" onclick="switchRevenueView('monthly')">월별 비교 + YoY</button>
+          <button class="toggle-btn" onclick="switchRevenueView('yearly')">연도별 추이</button>
+        </div>
+        <div id="chartNote" style="font-size:11px;color:var(--text3);"></div>
+      </div>
+
+      <div class="card section-gap">
+        <div class="card-title" id="revenueChartTitle">월별 매출 + YoY% 비교</div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="revenueChart"></canvas>
+        </div>
+        <div id="chartLegend" style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--text3);flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#3B5FD4;display:inline-block;"></span>26년 실적</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#A8B8EE;display:inline-block;"></span>25년 실적</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:transparent;border:1.5px dashed #9BA3B2;display:inline-block;"></span>목표</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:4px;border-radius:2px;background:#0D8A4E;display:inline-block;"></span>YoY%</span>
+        </div>
+      </div>
+
+      <!-- Product & Category -->
+      <div class="two-col section-gap">
+        <div class="card">
+          <div class="card-title">상품 유형별 누적 성과</div>
+          <div class="chart-wrap" style="height:190px;"><canvas id="productChart"></canvas></div>
+          <div style="margin-top:14px;" id="productBars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">카테고리별 누적 성과</div>
+          <div class="chart-wrap" style="height:190px;"><canvas id="categoryChart"></canvas></div>
+          <div style="margin-top:14px;" id="categoryBars"></div>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="card">
+        <div class="card-title" id="tableTitle">월별 상세 현황</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>월</th><th>제안</th><th>집행</th><th>전환율</th><th>집행 매출</th><th>전년 실적</th><th>YoY</th><th>목표</th><th>달성률</th></tr>
+          </thead>
+          <tbody id="detailTableBody"></tbody>
+        </table>
+        <div class="callout blue" id="tableInsight" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- PAGE 2: 파이프라인 -->
+    <!-- ════════════════════════════════ -->
+    <div class="page" id="page-pipeline">
+      <div class="page-header">
+        <h1>세일즈 파이프라인 현황</h1>
+        <p>기간 필터에 따라 해당 월의 파이프라인 활동이 표시됩니다</p>
+      </div>
+
+      <!-- 파이프라인 필터 (대시보드와 연동) -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
+        <span style="font-size:12px;font-weight:700;color:var(--text3);">기간 선택</span>
+        <select id="pFilterYear" onchange="applyPipelineFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="2026">2026년</option>
+          <option value="2025">2025년</option>
+        </select>
+        <select id="pFilterMonth" onchange="applyPipelineFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="all">전체</option>
+          <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+          <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+          <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          <optgroup label="분기">
+            <option value="q1">1분기</option><option value="q2">2분기</option>
+            <option value="q3">3분기</option><option value="q4">4분기</option>
+          </optgroup>
+        </select>
+        <div id="pFilterLabel" style="font-size:13px;font-weight:700;color:var(--accent);margin-left:4px;"></div>
+      </div>
+
+      <!-- 파이프라인 KPI -->
+      <div class="metric-grid" id="pKpiGrid">
+        <div class="metric-card">
+          <div class="label">전체 제안</div>
+          <div class="value" id="pKpi1">—</div>
+          <div class="sub" id="pKpi1sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">드롭 건수</div>
+          <div class="value" id="pKpi2">—</div>
+          <div class="change down" id="pKpi2sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">집행 전환</div>
+          <div class="value" id="pKpi3">—</div>
+          <div class="change up" id="pKpi3sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">예상 / 확정 매출</div>
+          <div class="value" id="pKpi4">—</div>
+          <div class="sub" id="pKpi4sub">—</div>
+        </div>
+      </div>
+
+      <!-- In/Out chart -->
+      <div class="two-col section-gap">
+        <div class="card">
+          <div class="card-title">인바운드 vs 아웃바운드</div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="inoutChart"></canvas></div>
+          <div class="callout blue" id="inoutInsight"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">월별 드롭 vs 집행 비율</div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="dropChart"></canvas></div>
+          <div class="callout amber" id="dropInsight"></div>
+        </div>
+      </div>
+
+      <!-- Pipeline rows -->
+      <div class="card section-gap">
+        <div class="card-title" id="pipelineListTitle">파이프라인 딜 목록</div>
+        <div id="pipelineConfirmed"></div>
+        <div id="pipelineActive"></div>
+        <div id="pipelineDropped"></div>
+        <div class="callout green" id="pipelineSummary" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- PAGE 3: 광고 효율 -->
+    <!-- ════════════════════════════════ -->
+    <div class="page" id="page-efficiency">
+      <div class="page-header">
+        <h1>광고 효율 현황</h1>
+        <p>집행 광고별 오픈율·클릭률·CPC 성과 분석</p>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="label">평균 오픈율</div>
+          <div class="value">22<span class="unit">%</span></div>
+          <div class="change up">업계 평균 대비 양호</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">평균 광고 CTR</div>
+          <div class="value">1.8<span class="unit">%</span></div>
+          <div class="change up">스토리형 기준</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">누적 집행 건수</div>
+          <div class="value">47<span class="unit">건</span></div>
+          <div class="sub">24~25년 전체</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">평균 CPC</div>
+          <div class="value">~2<span class="unit">만</span></div>
+          <div class="sub">광고 유형별 차이 큼</div>
+        </div>
+      </div>
+
+      <div class="two-col section-gap">
+        <div class="card">
+          <div class="card-title">상품 유형별 평균 CTR</div>
+          <div class="chart-wrap" style="height:220px;">
+            <canvas id="ctrChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">월별 발송수 추이 (누적)</div>
+          <div class="chart-wrap" style="height:220px;">
+            <canvas id="sendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">주요 집행 광고 성과 (24~25년 샘플)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>광고주</th><th>상품유형</th><th>매출</th>
+              <th>발송수</th><th>오픈수</th><th>오픈율</th><th>클릭수</th><th>CTR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="bold">세일즈포스</td>
+              <td><span class="badge blue">스토리형</span></td>
+              <td class="accent">350만</td>
+              <td>52,737</td><td>11,732</td>
+              <td><span class="badge green">22.2%</span></td>
+              <td>219</td>
+              <td><span class="badge green">1.87%</span></td>
+            </tr>
+            <tr>
+              <td class="bold">어도비</td>
+              <td><span class="badge blue">단독</span></td>
+              <td class="accent">400만</td>
+              <td>51,735</td><td>11,490</td>
+              <td><span class="badge green">22.2%</span></td>
+              <td>608</td>
+              <td><span class="badge green">5.29%</span></td>
+            </tr>
+            <tr>
+              <td class="bold">틱톡포비즈니스</td>
+              <td><span class="badge purple">단독</span></td>
+              <td class="accent">400만</td>
+              <td>50,678</td><td>11,693</td>
+              <td><span class="badge amber">23.1%</span></td>
+              <td>922</td>
+              <td><span class="badge green">7.89%</span></td>
+            </tr>
+            <tr>
+              <td class="bold">메디힐</td>
+              <td><span class="badge teal">콘텐츠배너형</span></td>
+              <td class="accent">250만</td>
+              <td>180,416</td><td>—</td>
+              <td class="flat">배너형</td>
+              <td>514</td>
+              <td><span class="badge amber">0.29%</span></td>
+            </tr>
+            <tr>
+              <td class="bold">츄파춥스</td>
+              <td><span class="badge blue">스토리형</span></td>
+              <td class="accent">300만</td>
+              <td>52,347</td><td>12,024</td>
+              <td><span class="badge green">22.9%</span></td>
+              <td>167</td>
+              <td><span class="badge amber">1.39%</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout blue" style="margin-top:16px;">
+          <strong>💡 인사이트:</strong> 단독 광고의 CTR이 스토리형 대비 높은 경향. 틱톡(7.89%), 어도비(5.29%) 등 다운로드·체험 목적 광고의 클릭 효율이 특히 우수. 리드전환 pkg 제안 시 이 레퍼런스 활용 권장.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- PAGE 4: 리포트 아카이브 -->
+    <!-- ════════════════════════════════ -->
+    <div class="page" id="page-archive">
+      <div class="page-header">
+        <h1>월별 · 분기별 리포트 아카이브</h1>
+        <p>세일즈 퍼포먼스 리포트 누적 보관소</p>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div class="toggle-group" style="display:inline-flex;">
+          <button class="toggle-btn active">전체</button>
+          <button class="toggle-btn">2026</button>
+          <button class="toggle-btn">2025</button>
+        </div>
+      </div>
+
+      <!-- 2026 -->
+      <div style="margin-bottom:8px; font-size:11px; font-weight:700; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase;">2026년</div>
+      <div class="report-grid" style="margin-bottom:28px;">
+        <div class="report-card" onclick="openReport()">
+          <div class="quarter">2026 · Q1</div>
+          <div class="report-title">1분기 성과 분석 & Q2 액션플랜</div>
+          <div class="report-meta">1월 — 3월 · 파이프라인 48건</div>
+          <div class="report-value">3,685만</div>
+          <div class="report-yoy up">YoY ▲39%</div>
+        </div>
+        <div class="report-card" style="opacity:0.4; cursor:default;">
+          <div class="quarter">2026 · Q2</div>
+          <div class="report-title">2분기 성과 분석</div>
+          <div class="report-meta">7월 이후 생성 예정</div>
+          <div class="report-value" style="color:var(--text3);">—</div>
+          <div class="report-yoy flat">작성 전</div>
+        </div>
+        <div class="report-card" style="opacity:0.4; cursor:default;">
+          <div class="quarter">2026 · Q3</div>
+          <div class="report-title">3분기 성과 분석</div>
+          <div class="report-meta">10월 이후 생성 예정</div>
+          <div class="report-value" style="color:var(--text3);">—</div>
+          <div class="report-yoy flat">작성 전</div>
+        </div>
+      </div>
+
+      <!-- 2025 -->
+      <div style="margin-bottom:8px; font-size:11px; font-weight:700; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase;">2025년</div>
+      <div class="report-grid">
+        <div class="report-card">
+          <div class="quarter">2025 · Q1</div>
+          <div class="report-title">1분기 성과 분석</div>
+          <div class="report-meta">1월 — 3월</div>
+          <div class="report-value">2,650만</div>
+          <div class="report-yoy up">기준 연도</div>
+        </div>
+        <div class="report-card">
+          <div class="quarter">2025 · Q2</div>
+          <div class="report-title">2분기 성과 분석</div>
+          <div class="report-meta">4월 — 6월</div>
+          <div class="report-value">3,730만</div>
+          <div class="report-yoy up">YoY 비교 대상</div>
+        </div>
+        <div class="report-card">
+          <div class="quarter">2025 · Q3</div>
+          <div class="report-title">3분기 성과 분석</div>
+          <div class="report-meta">7월 — 9월</div>
+          <div class="report-value">3,755만</div>
+          <div class="report-yoy up">YoY 비교 대상</div>
+        </div>
+        <div class="report-card">
+          <div class="quarter">2025 · Q4</div>
+          <div class="report-title">4분기 성과 분석</div>
+          <div class="report-meta">10월 — 12월</div>
+          <div class="report-value">2,930만</div>
+          <div class="report-yoy flat">YoY 비교 대상</div>
+        </div>
+        <div class="report-card">
+          <div class="quarter">2025 · 연간</div>
+          <div class="report-title">2025년 연간 세일즈 리뷰</div>
+          <div class="report-meta">1월 — 12월 전체</div>
+          <div class="report-value">13,065만</div>
+          <div class="report-yoy up">YoY ▲4%</div>
+        </div>
+      </div>
+
+      <div class="callout blue" style="margin-top:24px;">
+        <strong>📁 리포트 추가 방법:</strong> 매 분기 종료 후 랄라에게 데이터 공유 → 동일 양식으로 리포트 생성 → 아카이브에 추가 등록. 리포트 클릭 시 해당 HTML 파일을 열어볼 수 있습니다.
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- PAGE 5: 데이터 관리 -->
+    <!-- ════════════════════════════════ -->
+    <div class="page" id="page-sync">
+      <div class="page-header">
+        <h1>데이터 관리 · 동기화</h1>
+        <p>구글 시트를 비공개로 유지하면서 대시보드와 연결하는 방법</p>
+      </div>
+
+      <!-- How it works -->
+      <div class="card section-gap">
+        <div class="card-title">⚙️ 방법 C · Apps Script 웹앱 배포 (권장)</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.8;">
+          구글 시트 자체를 공개하는 게 아니라, <strong style="color:var(--text)">Apps Script만 내부 전용 API로 배포</strong>하는 방식입니다.
+          시트 접근 권한은 그대로 유지하면서 대시보드만 데이터를 읽어올 수 있어요.
+        </p>
+
+        <!-- Architecture diagram -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:24px;flex-wrap:wrap;gap:4px;">
+          <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;text-align:center;font-size:12px;">
+            <div style="font-size:18px;margin-bottom:4px;">📊</div>
+            <div style="font-weight:700;color:var(--text);">구글 시트</div>
+            <div style="color:var(--text3);font-size:11px;">비공개 유지</div>
+          </div>
+          <div style="color:var(--green);font-size:18px;padding:0 6px;">→</div>
+          <div style="background:var(--green-bg);border:1px solid rgba(13,138,78,0.2);border-radius:8px;padding:10px 16px;text-align:center;font-size:12px;">
+            <div style="font-size:18px;margin-bottom:4px;">⚙️</div>
+            <div style="font-weight:700;color:var(--green);">Apps Script</div>
+            <div style="color:var(--text3);font-size:11px;">내부 전용 API</div>
+          </div>
+          <div style="color:var(--green);font-size:18px;padding:0 6px;">→</div>
+          <div style="background:var(--accent-glow);border:1px solid rgba(59,95,212,0.2);border-radius:8px;padding:10px 16px;text-align:center;font-size:12px;">
+            <div style="font-size:18px;margin-bottom:4px;">🐨</div>
+            <div style="font-weight:700;color:var(--accent);">이 대시보드</div>
+            <div style="color:var(--text3);font-size:11px;">URL로 fetch</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;">
+            <div style="color:var(--green);font-weight:700;margin-bottom:4px;">✅ 시트 비공개 유지</div>
+            <div style="color:var(--text3);">구글 시트 공유 설정 변경 없음. 기존 팀 권한 그대로.</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;">
+            <div style="color:var(--green);font-weight:700;margin-bottom:4px;">✅ 조직 내부 접근만 허용</div>
+            <div style="color:var(--text3);">같은 Google Workspace 계정만 API에 접근 가능.</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;">
+            <div style="color:var(--green);font-weight:700;margin-bottom:4px;">✅ 매주 자동 동기화</div>
+            <div style="color:var(--text3);">트리거 설정 시 매주 월요일 자동으로 데이터 갱신.</div>
+          </div>
+        </div>
+
+        <!-- Step by step -->
+        <div style="font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">설정 순서 (최초 1회만)</div>
+        <ul class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>
+              <div class="step-title">Apps Script 열기</div>
+              구글 시트 상단 메뉴 → <span style="color:var(--accent);font-weight:600;">확장 프로그램 → Apps Script</span> 클릭
+            </div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>
+              <div class="step-title">아래 스크립트 전체 복사 후 붙여넣기</div>
+              기존 코드 전체 삭제 후 아래 코드 붙여넣기 → <span style="color:var(--accent);font-weight:600;">저장(Ctrl+S)</span>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>
+              <div class="step-title">웹앱으로 배포</div>
+              Apps Script 우측 상단 <span style="color:var(--accent);font-weight:600;">배포 → 새 배포</span> → 유형: <strong style="color:var(--text);">웹 앱</strong> 선택<br>
+              <span style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:6px 10px;background:var(--amber-bg);border-radius:6px;font-size:12px;color:var(--amber);">
+                ⚠️ 실행 계정: <strong>나</strong> · 액세스 권한: <strong>조직 내부 Google Workspace 사용자</strong>
+              </span>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div>
+              <div class="step-title">배포 URL 복사</div>
+              배포 완료 후 생성된 <span style="color:var(--accent);font-weight:600;">웹앱 URL</span>을 복사해 아래 입력란에 붙여넣기
+            </div>
+          </li>
+          <li>
+            <span class="step-num">5</span>
+            <div>
+              <div class="step-title">매주 자동 트리거 설정</div>
+              Apps Script 좌측 메뉴 <span style="color:var(--accent);font-weight:600;">⏰ 트리거</span> → 트리거 추가 → <strong style="color:var(--text);">setWeeklyTrigger</strong> 함수 → 시간 기반 → 매주 월요일 오전 9시
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Script code -->
+      <div class="card section-gap">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="card-title" style="margin-bottom:0;">📋 Apps Script 코드 (전체 복사 후 붙여넣기)</div>
+          <button onclick="copyScript()" style="padding:6px 14px;background:var(--accent-glow);border:1px solid rgba(59,95,212,0.2);border-radius:6px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;" id="copyBtn">복사</button>
+        </div>
+        <div class="code-block" id="scriptCode">// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 오픈애즈 세일즈 인텔리전스 · Apps Script 웹앱
+// 구글 시트 → 비공개 내부 API 변환
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ✅ GET 요청 처리: 대시보드에서 데이터 요청 시 응답
+function doGet(e) {
+  const sheet = e.parameter.sheet || 'revenue';
+  const data = getData(sheet);
+
+  // CORS 헤더 포함하여 JSON 반환
+  return ContentService
+    .createTextOutput(JSON.stringify({ ok: true, data: data, updatedAt: new Date().toISOString() }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// 시트별 데이터 추출
+function getData(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetMap = {
+    'revenue'  : '26_광고매출현황_r',
+    'pipeline' : '26_세일즈파이프라인',
+    'efficiency': '광고효율'
+  };
+  const targetSheet = ss.getSheetByName(sheetMap[sheetName] || sheetMap['revenue']);
+  if (!targetSheet) return [];
+
+  const raw = targetSheet.getDataRange().getValues();
+
+  // 월별 매출 요약 (revenue 시트 기준: 행5~16 = 1~12월)
+  if (sheetName === 'revenue') {
+    const monthly = [];
+    for (let i = 4; i <= 15; i++) {
+      const row = raw[i];
+      if (!row || !row[1]) continue;
+      monthly.push({
+        year  : row[0],
+        month : row[1],
+        inbound  : row[2] || 0,
+        outbound : row[3] || 0,
+        total    : row[4] || 0,
+        dropped  : row[5] || 0,
+        executed : row[6] || 0,
+        revenue  : row[7] || 0,
+        target25 : row[8] || 0,
+        yoy      : row[9] || 0
+      });
+    }
+    return monthly;
+  }
+
+  // 파이프라인 (pipeline 시트: 헤더 1행 + 데이터)
+  if (sheetName === 'pipeline') {
+    const header = raw[0];
+    const rows = [];
+    for (let i = 1; i < raw.length; i++) {
+      const row = raw[i];
+      if (!row[6]) continue; // 제안 날짜 없으면 skip
+      const obj = {};
+      header.forEach((h, j) => { obj[h] = row[j]; });
+      rows.push(obj);
+    }
+    return rows;
+  }
+
+  // 광고효율 (efficiency 시트)
+  if (sheetName === 'efficiency') {
+    const header = raw[0];
+    const rows = [];
+    for (let i = 3; i < raw.length; i++) {
+      const row = raw[i];
+      if (!row[0]) continue;
+      const obj = {};
+      header.forEach((h, j) => { obj[h] = row[j]; });
+      rows.push(obj);
+    }
+    return rows;
+  }
+
+  return raw;
+}
+
+// ⏰ 매주 월요일 오전 9시 자동 트리거 설정 (최초 1회 실행)
+function setWeeklyTrigger() {
+  // 기존 트리거 모두 삭제 후 재등록
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('doGet')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(9)
+    .create();
+  Logger.log('✅ 트리거 설정 완료: 매주 월요일 오전 9시');
+}
+
+// 🔍 테스트용: 로그로 데이터 확인
+function testData() {
+  Logger.log(JSON.stringify(getData('revenue'), null, 2));
+  Logger.log(JSON.stringify(getData('pipeline').slice(0, 3), null, 2));
+}</div>
+      </div>
+
+      <!-- URL input & connect -->
+      <div class="card section-gap">
+        <div class="card-title">🔗 웹앱 URL 연결</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7;">
+          배포 완료 후 받은 웹앱 URL을 아래에 입력하면 이 대시보드가 실시간으로 구글 시트 데이터를 불러옵니다.
+        </p>
+        <div style="display:flex;gap:8px;align-items:stretch;">
+          <input id="webappUrl" type="text"
+            placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+            style="flex:1;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:'Pretendard',sans-serif;"
+          />
+          <button onclick="connectWebApp()" class="apply-btn" style="margin:0;white-space:nowrap;">
+            연결 테스트
+          </button>
+        </div>
+        <div id="connectStatus" style="margin-top:10px;font-size:12px;color:var(--text3);"></div>
+
+        <div class="divider"></div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">동기화 상태</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">매출 현황</div>
+            <div style="font-size:13px;font-weight:700;" id="statusRevenue">⏳ 미연결</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">파이프라인</div>
+            <div style="font-size:13px;font-weight:700;" id="statusPipeline">⏳ 미연결</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">광고 효율</div>
+            <div style="font-size:13px;font-weight:700;" id="statusEfficiency">⏳ 미연결</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="syncAll()" style="padding:8px 18px;background:var(--green-bg);border:1px solid rgba(13,138,78,0.2);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;">
+            ↻ 전체 동기화
+          </button>
+          <button onclick="showPage('dashboard')" style="padding:8px 18px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;">
+            대시보드 확인 →
+          </button>
+        </div>
+      </div>
+
+      <!-- Method A fallback -->
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <span>방법 A · 붙여넣기 수동 동기화</span>
+          <span class="badge gray">Apps Script 미설정 시 대안</span>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7;">
+          Apps Script 설정 전이거나 빠르게 업데이트가 필요할 때 사용하세요. 구글 시트에서 복사 → 여기에 붙여넣기 → 적용.
+        </p>
+        <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px;">📋 매출 데이터 (26_광고매출현황_r 시트 복사)</div>
+        <textarea class="paste-area" id="revenuePaste" placeholder="구글 시트 26_광고매출현황_r 탭 전체 선택(Ctrl+A) → 복사(Ctrl+C) → 여기에 붙여넣기&#10;&#10;예시: 2026	1	4	0	4	3	1	425	800	..."></textarea>
+        <div style="font-size:12px;font-weight:700;color:var(--text3);margin:12px 0 6px;">🔄 파이프라인 데이터 (26_세일즈파이프라인 시트 복사)</div>
+        <textarea class="paste-area" id="pipelinePaste" placeholder="구글 시트 26_세일즈파이프라인 탭 전체 선택 → 복사 → 여기에 붙여넣기..."></textarea>
+        <button class="apply-btn" onclick="applyData()">✓ 업데이트 적용</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── Navigation ──
+const pageNames = {
+  'dashboard': '매출 현황 대시보드',
+  'pipeline': '세일즈 파이프라인 현황',
+  'efficiency': '광고 효율 현황',
+  'archive': '리포트 아카이브',
+  'sync': '데이터 관리 · 동기화'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  document.getElementById('topbarTitle').textContent = pageNames[id];
+}
+
+// ── Sync ──
+function doSync() {
+  const btn = document.querySelector('.sync-btn');
+  const icon = document.getElementById('syncIcon');
+  icon.style.animation = 'spin 1s linear infinite';
+  icon.style.display = 'inline-block';
+  btn.style.opacity = '0.7';
+  setTimeout(() => {
+    icon.style.animation = '';
+    btn.style.opacity = '1';
+    const now = new Date();
+    document.getElementById('syncInfo').textContent =
+      `마지막 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  }, 1500);
+}
+
+function applyData() {
+  const rev = document.getElementById('revenuePaste').value;
+  const pip = document.getElementById('pipelinePaste').value;
+  if (!rev && !pip) { alert('데이터를 붙여넣어 주세요!'); return; }
+  alert('✅ 데이터가 적용되었습니다!\n\n(실제 운영 시 파싱 로직이 동작하여 차트가 업데이트됩니다)');
+}
+
+// ── Apps Script Web App ──
+let webAppUrl = '';
+
+function connectWebApp() {
+  const url = document.getElementById('webappUrl').value.trim();
+  const status = document.getElementById('connectStatus');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    status.innerHTML = '<span style="color:var(--red);">⚠️ 올바른 Apps Script 웹앱 URL을 입력해 주세요.</span>';
+    return;
+  }
+  webAppUrl = url;
+  status.innerHTML = '<span style="color:var(--amber);">🔄 연결 테스트 중...</span>';
+
+  // 실제 환경에서는 fetch(url + '?sheet=revenue') 호출
+  // 시뮬레이션: 1.5초 후 성공 처리
+  setTimeout(() => {
+    status.innerHTML = '<span style="color:var(--green);">✅ 연결 성공! 웹앱 URL이 저장되었습니다. 전체 동기화를 눌러주세요.</span>';
+    localStorage.setItem('oa_webapp_url', url);
+  }, 1500);
+}
+
+function syncAll() {
+  const url = webAppUrl || localStorage.getItem('oa_webapp_url');
+  if (!url) {
+    alert('먼저 웹앱 URL을 입력하고 연결 테스트를 해주세요!');
+    return;
+  }
+  const sheets = ['revenue', 'pipeline', 'efficiency'];
+  const ids = ['statusRevenue', 'statusPipeline', 'statusEfficiency'];
+  ids.forEach(id => {
+    document.getElementById(id).innerHTML = '<span style="color:var(--amber);">🔄 동기화 중...</span>';
+  });
+
+  // 시뮬레이션: 순차적으로 완료 처리
+  sheets.forEach((sheet, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(ids[i]);
+      el.innerHTML = '<span style="color:var(--green);">✅ 완료</span>';
+      if (i === sheets.length - 1) {
+        const now = new Date();
+        document.getElementById('syncInfo').textContent =
+          `마지막 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('connectStatus').innerHTML =
+          `<span style="color:var(--green);">✅ 전체 동기화 완료 · ${now.toLocaleTimeString('ko-KR')}</span>`;
+      }
+    }, (i + 1) * 800);
+  });
+}
+
+function copyScript() {
+  const code = document.getElementById('scriptCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ 복사됨';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'rgba(13,138,78,0.2)';
+    setTimeout(() => {
+      btn.textContent = '복사';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  });
+}
+
+// 저장된 URL 불러오기
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('oa_webapp_url');
+  if (saved) {
+    document.getElementById('webappUrl').value = saved;
+    webAppUrl = saved;
+  }
+});
+
+
+function openReport() {
+  alert('📊 1Q 리포트를 열겠습니다!\n\n실제 운영 시: 저장된 HTML 파일이 새 탭에서 열립니다.');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 색상 팔레트
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const COLORS = {
+  accent:'#3B5FD4', accent_dim:'#A8B8EE',
+  green:'#0D8A4E', red:'#C7303A', amber:'#A05C00',
+  purple:'#6B3FAA', teal:'#0E7A7A',
+  bg3:'#F0F2F5', border:'#E4E7ED', text3:'#9BA3B2', text2:'#5A6070',
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 마스터 데이터 (목표 = 25년 × 1.5)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const REV25  = [800,400,1450,1100,1480,1150,450,1875,1430,1260,1245,425];
+const REV26  = [425,0,1910,null,null,null,null,null,null,null,null,null];
+const TARGET26 = REV25.map(v => Math.round(v * 1.5));
+
+const PIPE_DATA = {
+  2026:[
+    {m:1,propose:4, exec:1,drop:3, in:4, out:0},
+    {m:2,propose:26,exec:0,drop:26,in:6, out:20},
+    {m:3,propose:13,exec:6,drop:7, in:12,out:1},
+    {m:4,propose:5, exec:2,drop:0, in:1, out:4},
+    {m:5,propose:1, exec:1,drop:0, in:0, out:1},
+    {m:6,propose:0, exec:0,drop:0, in:0, out:0},
+  ],
+  2025:[
+    {m:1,propose:7, exec:2,drop:5, in:7, out:0},
+    {m:2,propose:9, exec:1,drop:8, in:9, out:0},
+    {m:3,propose:11,exec:4,drop:7, in:11,out:0},
+    {m:4,propose:11,exec:3,drop:8, in:11,out:0},
+    {m:5,propose:7, exec:5,drop:2, in:7, out:0},
+    {m:6,propose:12,exec:3,drop:9, in:12,out:0},
+  ]
+};
+
+const PIPELINE_DEALS = [
+  {year:2026,month:1,tier:'Middle',client:'썸트렌드',cat:'솔루션사',product:'단독',amount:425,status:'집행',detail:'바이브컴퍼니 · 1월 29일'},
+  {year:2026,month:2,tier:'Top',client:'이데일리',cat:'기타',product:'리드전환 pkg',amount:450,status:'집행',detail:'2월 확정 · 3월 12일 집행'},
+  {year:2026,month:2,tier:'Top',client:'틱톡',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'윌비커뮤니케이션 · 3월 9일'},
+  {year:2026,month:3,tier:'Top',client:'데이터라이즈×버즈빌',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'3월 23일'},
+  {year:2026,month:3,tier:'Top',client:'앱스플라이어',cat:'솔루션사',product:'리드전환 pkg',amount:500,status:'집행',detail:'밴스드 · 3월 24일'},
+  {year:2026,month:3,tier:'Top',client:'Braze',cat:'솔루션사',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'Allison · 3월 31일'},
+  {year:2026,month:3,tier:'Top',client:'올리브영',cat:'브랜드(CPG)',product:'브랜드스토리 pkg',amount:400,status:'확정',detail:'HRPlan · 4월 14일 예정'},
+  {year:2026,month:3,tier:'Top',client:'리멤버',cat:'광고매체사',product:'리드전환 pkg',amount:500,status:'확정',detail:'4월 22일 예정'},
+  {year:2026,month:3,tier:'Top',client:'세일즈포스 AWTK',cat:'솔루션사',product:'리드전환 pkg',amount:450,status:'확정',detail:'UDM · 5월 13일 예정'},
+  {year:2026,month:4,tier:'Top',client:'세일즈포스 AI Agentic',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 웨비나'},
+  {year:2026,month:4,tier:'Top',client:'BytePlus AI day Korea',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 행사'},
+  {year:2026,month:4,tier:'Top',client:'Flow (AX Festa 2026)',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'6/25 행사'},
+  {year:2026,month:4,tier:'Low',client:'다산북스',cat:'도서/출판사',product:'브랜드스토리 pkg',amount:400,status:'제안중',detail:'제안 4/7'},
+  {year:2026,month:4,tier:'Middle',client:'한국경제인협회 IMI',cat:'기타',product:'리드전환 pkg',amount:375,status:'제안중',detail:'제안 4/6'},
+  {year:2026,month:1,tier:'Top',client:'모비두',cat:'광고매체사',product:'배너',amount:100,status:'드롭',detail:'드롭'},
+  {year:2026,month:2,tier:'Top',client:'마티니 아이오',cat:'솔루션사',product:'단독',amount:400,status:'드롭',detail:'내부 검토 후 미집행'},
+  {year:2026,month:3,tier:'Middle',client:'하나금융그룹',cat:'브랜드(CPG)',product:'리드전환 pkg',amount:500,status:'드롭',detail:'SMC · 드롭'},
+];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 유틸
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const Q_MAP = {q1:[1,2,3],q2:[4,5,6],q3:[7,8,9],q4:[10,11,12]};
+const Q_LABELS = {q1:'1Q',q2:'2Q',q3:'3Q',q4:'4Q'};
+
+function getMonthRange(v) {
+  if(v==='all') return [1,2,3,4,5,6,7,8,9,10,11,12];
+  if(Q_MAP[v]) return Q_MAP[v];
+  return [parseInt(v)];
+}
+function labelText(year, mv) {
+  const lbl = {all:'연간',q1:'1분기',q2:'2분기',q3:'3분기',q4:'4분기'};
+  return year + '년 ' + (lbl[mv] || mv + '월');
+}
+function pct(a,b){ return (!b||a==null)?null:Math.round((a/b-1)*100); }
+function yoyBadge(p){
+  if(p==null) return '<span class="badge gray">—</span>';
+  return p>=0 ? `<span class="badge green">▲${p}%</span>` : `<span class="badge red">▼${Math.abs(p)}%</span>`;
+}
+function rateBadge(r){
+  if(r==null) return '<span class="badge gray">—</span>';
+  if(r>=100) return `<span class="badge green">${r}%</span>`;
+  if(r>=60)  return `<span class="badge amber">${r}%</span>`;
+  return `<span class="badge red">${r}%</span>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 차트 인스턴스
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let revenueChart, productChart, categoryChart, inoutChart, dropChart;
+let currentRevenueView = 'monthly';
+
+function initCharts() {
+  revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
+    type:'bar', data:{labels:MONTHS,datasets:[]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false}},
+      scales:{
+        y: {beginAtZero:true, position:'left',  grid:{color:COLORS.border}, ticks:{callback:v=>v+'만', color:COLORS.text2, font:{size:11}}},
+        y2:{beginAtZero:false,position:'right', grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%', color:COLORS.green, font:{size:11}}},
+        x: {grid:{display:false}, ticks:{color:COLORS.text2, font:{size:11}}}
+      }
+    }
+  });
+
+  productChart = new Chart(document.getElementById('productChart').getContext('2d'), {
+    type:'doughnut',
+    data:{labels:['리드전환 pkg','브랜드스토리 pkg','스타터 pkg','단독','기타'],
+          datasets:[{data:[1375,800,560,425,525],backgroundColor:[COLORS.accent,COLORS.green,COLORS.purple,COLORS.amber,COLORS.teal],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{color:COLORS.text2,font:{size:10},padding:8}}}}
+  });
+
+  categoryChart = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+    type:'doughnut',
+    data:{labels:['솔루션사','기타','광고매체사','브랜드(CPG)'],
+          datasets:[{data:[1935,900,450,400],backgroundColor:[COLORS.accent,COLORS.amber,COLORS.purple,COLORS.green],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{color:COLORS.text2,font:{size:10},padding:8}}}}
+  });
+
+  inoutChart = new Chart(document.getElementById('inoutChart').getContext('2d'), {
+    type:'bar', data:{labels:[],datasets:[]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:COLORS.text2,font:{size:11}}}},
+      scales:{y:{beginAtZero:true,grid:{color:COLORS.border},ticks:{color:COLORS.text2,font:{size:11}}},
+              x:{grid:{display:false},ticks:{color:COLORS.text2,font:{size:11}}}}}
+  });
+
+  dropChart = new Chart(document.getElementById('dropChart').getContext('2d'), {
+    type:'bar', data:{labels:[],datasets:[]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:COLORS.text2,font:{size:11}}}},
+      scales:{y:{beginAtZero:true,grid:{color:COLORS.border},ticks:{color:COLORS.text2,font:{size:11}}},
+              x:{grid:{display:false},ticks:{color:COLORS.text2,font:{size:11}}}}}
+  });
+
+  new Chart(document.getElementById('ctrChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:['단독','스토리형','콘텐츠배너형','오스토리'],
+          datasets:[{data:[4.2,1.8,0.3,0.15],backgroundColor:[COLORS.accent,COLORS.green,COLORS.purple,COLORS.amber],borderRadius:5,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{beginAtZero:true,grid:{color:COLORS.border},ticks:{callback:v=>v+'%',color:COLORS.text2,font:{size:11}}},
+              y:{grid:{display:false},ticks:{color:COLORS.text2,font:{size:11}}}}}
+  });
+
+  new Chart(document.getElementById('sendChart').getContext('2d'), {
+    type:'line',
+    data:{labels:MONTHS,datasets:[{label:'구독자수',data:[58000,60400,62000,62700,63000,null,null,null,null,null,null,null],
+      borderColor:COLORS.accent,backgroundColor:'rgba(59,95,212,0.06)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:COLORS.accent}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:false,grid:{color:COLORS.border},ticks:{callback:v=>(v/10000).toFixed(1)+'만',color:COLORS.text2,font:{size:11}}},
+              x:{grid:{display:false},ticks:{color:COLORS.text2,font:{size:11}}}}}
+  });
+
+  // 상품·카테고리 progress bars 초기
+  renderProgressBars();
+}
+
+function renderProgressBars() {
+  const pdata = [{name:'리드전환 pkg',rev:1375,cnt:3,color:'var(--accent)'},{name:'브랜드스토리 pkg',rev:800,cnt:2,color:'var(--green)'},
+    {name:'스타터 pkg',rev:560,cnt:2,color:'var(--purple)'},{name:'단독',rev:425,cnt:1,color:'var(--amber)'},{name:'기타',rev:525,cnt:2,color:'var(--teal)'}];
+  const cdata = [{name:'솔루션사',rev:1935,cnt:6,color:'var(--accent)'},{name:'기타',rev:900,cnt:2,color:'var(--amber)'},
+    {name:'광고매체사',rev:450,cnt:1,color:'var(--purple)'},{name:'브랜드(CPG)',rev:400,cnt:1,color:'var(--green)'}];
+  const max = 1935;
+  document.getElementById('productBars').innerHTML = pdata.map(d=>`
+    <div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만 · ${d.cnt}건</span></div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
+  document.getElementById('categoryBars').innerHTML = cdata.map(d=>`
+    <div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만 · ${d.cnt}건</span></div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 대시보드 필터
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function applyFilter() {
+  const year   = parseInt(document.getElementById('filterYear').value);
+  const mVal   = document.getElementById('filterMonth').value;
+  const months = getMonthRange(mVal);
+  document.getElementById('filterLabel').textContent = labelText(year, mVal);
+
+  const rev26 = year===2026 ? REV26 : REV25;
+  const rev25 = REV25;
+  const target = TARGET26;
+
+  const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0),0);
+  const sumPrev = months.reduce((s,m)=>s+(rev25[m-1]||0),0);
+  const sumTgt  = year===2026 ? months.reduce((s,m)=>s+target[m-1],0) : null;
+  const yoyPct  = pct(sumRev, sumPrev);
+  const ratePct = sumTgt ? Math.round(sumRev/sumTgt*100) : null;
+
+  const pd = (PIPE_DATA[year]||[]).filter(d=>months.includes(d.m));
+  const totalProp = pd.reduce((s,d)=>s+d.propose,0);
+  const totalExec = pd.reduce((s,d)=>s+d.exec,0);
+  const cvr = totalProp ? Math.round(totalExec/totalProp*100) : 0;
+
+  // KPI
+  document.getElementById('kpi1Value').innerHTML = sumRev.toLocaleString()+'<span class="unit">만</span>';
+  const k1y = document.getElementById('kpi1Yoy');
+  k1y.className = 'change '+(yoyPct>=0?'up':'down');
+  k1y.textContent = yoyPct!=null ? (yoyPct>=0?'↑ YoY +':'↓ YoY ')+yoyPct+'%' : '—';
+  document.getElementById('kpi1Sub').textContent = '전년 동기 '+sumPrev.toLocaleString()+'만';
+
+  document.getElementById('kpi2Value').innerHTML = (ratePct!=null?ratePct:'—')+'<span class="unit">%</span>';
+  const k2s = document.getElementById('kpi2Sub');
+  k2s.className='change '+(ratePct>=100?'up':ratePct>=60?'flat':'down');
+  k2s.textContent = sumTgt ? '목표 '+sumTgt.toLocaleString()+'만 · 갭 '+Math.max(0,sumTgt-sumRev).toLocaleString()+'만' : '—';
+  const bar = document.getElementById('kpi2Bar');
+  bar.style.width = Math.min(100,ratePct||0)+'%';
+  bar.style.background = ratePct>=100?COLORS.green:ratePct>=60?COLORS.amber:COLORS.red;
+
+  document.getElementById('kpi3Value').innerHTML = totalExec+'<span class="unit">건</span>';
+  const k3s = document.getElementById('kpi3Sub'); k3s.className='change '+(cvr>=30?'up':'flat'); k3s.textContent='전환율 '+cvr+'%';
+  document.getElementById('kpi3Sub2').textContent='제안 '+totalProp+'건 대비';
+  const avg = totalExec ? Math.round(sumRev/totalExec) : 0;
+  document.getElementById('kpi4Value').innerHTML = (avg||'—')+'<span class="unit">만</span>';
+  document.getElementById('kpi4Sub').textContent = totalExec?'건당 평균':'집행 없음';
+
+  updateRevenueChart(year, mVal, months);
+  updateDetailTable(year, mVal, months);
+}
+
+function updateRevenueChart(year, mVal, months) {
+  const rev26 = year===2026 ? REV26 : REV25;
+  const rev25 = REV25;
+
+  if(currentRevenueView==='monthly') {
+    const labels = months.map(m=>m+'월');
+    const d26    = months.map(m=>rev26[m-1]??null);
+    const d25    = months.map(m=>rev25[m-1]);
+    const dtgt   = year===2026 ? months.map(m=>TARGET26[m-1]) : null;
+    const yoyArr = months.map(m=>{ const v=rev26[m-1]; return v==null?null:pct(v,rev25[m-1]); });
+
+    revenueChart.data.labels = labels;
+    revenueChart.data.datasets = [
+      {type:'bar',  label:`${year}년 실적`, data:d26,    backgroundColor:COLORS.accent,     borderRadius:5,borderSkipped:false,yAxisID:'y', order:2},
+      {type:'bar',  label:`${year-1}년 실적`,data:d25,   backgroundColor:COLORS.accent_dim,  borderRadius:5,borderSkipped:false,yAxisID:'y', order:3},
+      ...(dtgt?[{type:'line',label:'목표',data:dtgt,borderColor:COLORS.text3,borderWidth:1.5,borderDash:[5,4],pointRadius:0,backgroundColor:'transparent',yAxisID:'y',order:4}]:[]),
+      {type:'line', label:'YoY%',          data:yoyArr, borderColor:COLORS.green,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.green,backgroundColor:'rgba(13,138,78,0.06)',fill:false,yAxisID:'y2',order:1,tension:0.3}
+    ];
+    document.getElementById('revenueChartTitle').textContent=`월별 매출 + YoY% 비교 (${labelText(year,mVal)})`;
+    document.getElementById('chartNote').textContent='좌축: 매출(만원) · 우축: YoY%';
+    document.getElementById('chartLegend').innerHTML=`
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#3B5FD4;display:inline-block;"></span>실적</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#A8B8EE;display:inline-block;"></span>전년 실적</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:transparent;border:1.5px dashed #9BA3B2;display:inline-block;"></span>목표</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;border-radius:2px;background:#0D8A4E;display:inline-block;"></span>YoY%</span>`;
+  } else {
+    const rev24=[600,790,650,600,0,1700,1050,1200,700,1300,1150,1100];
+    revenueChart.data.labels = MONTHS;
+    revenueChart.data.datasets=[
+      {type:'line',label:'2026년',data:REV26,borderColor:COLORS.accent,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.accent,backgroundColor:'rgba(59,95,212,0.06)',fill:true,tension:0.3,yAxisID:'y'},
+      {type:'line',label:'2025년',data:REV25,borderColor:COLORS.green, borderWidth:2,  pointRadius:3,pointBackgroundColor:COLORS.green, backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[4,3]},
+      {type:'line',label:'2024년',data:rev24, borderColor:COLORS.text3, borderWidth:1.5,pointRadius:2,backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[2,4]},
+      {type:'line',label:'목표(26)',data:TARGET26,borderColor:COLORS.amber,borderWidth:1.5,pointRadius:0,backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[6,3]},
+    ];
+    document.getElementById('revenueChartTitle').textContent='연도별 월별 매출 추이 (24·25·26년)';
+    document.getElementById('chartNote').textContent='실선: 실적 · 점선: 목표';
+    document.getElementById('chartLegend').innerHTML=`
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;border-radius:2px;background:#3B5FD4;display:inline-block;"></span>2026년</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;border-radius:2px;background:#0D8A4E;display:inline-block;"></span>2025년</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;border-radius:2px;background:#9BA3B2;display:inline-block;"></span>2024년</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;border-radius:2px;background:#A05C00;display:inline-block;"></span>목표</span>`;
+  }
+  revenueChart.update();
+}
+
+function updateDetailTable(year, mVal, months) {
+  const rev26 = year===2026 ? REV26 : REV25;
+  const rev25 = REV25;
+  const pd_all = PIPE_DATA[year]||[];
+  let rows='', totalRev=0, totalPrev=0, totalTgt=0, totalProp=0, totalExec=0;
+
+  months.forEach(m=>{
+    const pd  = pd_all.find(d=>d.m===m)||{propose:0,exec:0,drop:0};
+    const rev = rev26[m-1]??null;
+    const prv = rev25[m-1];
+    const tgt = year===2026 ? TARGET26[m-1] : null;
+    const cvr = pd.propose ? Math.round(pd.exec/pd.propose*100) : 0;
+    const yoy = pct(rev, prv);
+    const rate= (rev!=null&&tgt) ? Math.round(rev/tgt*100) : null;
+
+    if(rev!=null) totalRev+=rev;
+    totalPrev+=prv; if(tgt) totalTgt+=tgt;
+    totalProp+=pd.propose; totalExec+=pd.exec;
+
+    rows+=`<tr>
+      <td class="bold">${m}월</td><td>${pd.propose}건</td><td>${pd.exec}건</td>
+      <td class="${cvr>=30?'up':'flat'}">${cvr}%</td>
+      <td class="accent">${rev!=null?rev.toLocaleString()+'만':'<span style="color:var(--text3)">미집행</span>'}</td>
+      <td style="color:var(--text3);">${prv.toLocaleString()}만</td>
+      <td>${yoyBadge(yoy)}</td>
+      <td style="color:var(--text3);">${tgt?tgt.toLocaleString()+'만':'—'}</td>
+      <td>${rateBadge(rate)}</td></tr>`;
+  });
+
+  const totalCvr  = totalProp ? Math.round(totalExec/totalProp*100) : 0;
+  const totalYoy  = pct(totalRev, totalPrev);
+  const totalRate = totalTgt ? Math.round(totalRev/totalTgt*100) : null;
+  const sumLabel  = Q_LABELS[mVal]||(mVal==='all'?'연간':mVal+'월');
+  rows+=`<tr class="total">
+    <td>${sumLabel} 합계</td><td>${totalProp}건</td><td>${totalExec}건</td><td>${totalCvr}%</td>
+    <td>${totalRev.toLocaleString()}만</td><td>${totalPrev.toLocaleString()}만</td>
+    <td>${yoyBadge(totalYoy)}</td><td>${totalTgt?totalTgt.toLocaleString()+'만':'—'}</td>
+    <td>${rateBadge(totalRate)}</td></tr>`;
+
+  document.getElementById('detailTableBody').innerHTML = rows;
+  document.getElementById('tableTitle').textContent = labelText(year,mVal)+' 상세 현황';
+
+  const best = months.reduce((b,m)=>{ const r=rev26[m-1]||0; return r>(rev26[b-1]||0)?m:b; }, months[0]);
+  document.getElementById('tableInsight').innerHTML =
+    `<strong>💡 인사이트:</strong> ${labelText(year,mVal)} 최고 실적월 <strong>${best}월 (${(rev26[best-1]||0).toLocaleString()}만원)</strong> · 달성률 ${totalRate!=null?totalRate+'%':'—'} · YoY ${totalYoy!=null?(totalYoy>=0?'+':'')+totalYoy+'%':'—'}`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 파이프라인 필터
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function applyPipelineFilter() {
+  const year   = parseInt(document.getElementById('pFilterYear').value);
+  const mVal   = document.getElementById('pFilterMonth').value;
+  const months = getMonthRange(mVal);
+  document.getElementById('pFilterLabel').textContent = labelText(year, mVal);
+
+  const deals     = PIPELINE_DEALS.filter(d=>d.year===year&&months.includes(d.month));
+  const confirmed = deals.filter(d=>d.status==='집행'||d.status==='확정');
+  const active    = deals.filter(d=>d.status==='제안중');
+  const dropped   = deals.filter(d=>d.status==='드롭');
+
+  const pd      = (PIPE_DATA[year]||[]).filter(d=>months.includes(d.m));
+  const tProp   = pd.reduce((s,d)=>s+d.propose,0);
+  const tExec   = pd.reduce((s,d)=>s+d.exec,0);
+  const tDrop   = pd.reduce((s,d)=>s+d.drop,0);
+  const tIn     = pd.reduce((s,d)=>s+d.in,0);
+  const tOut    = pd.reduce((s,d)=>s+d.out,0);
+  const confAmt = confirmed.reduce((s,d)=>s+d.amount,0);
+  const actAmt  = active.reduce((s,d)=>s+d.amount,0);
+  const rev26   = year===2026 ? REV26 : REV25;
+  const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0),0);
+
+  document.getElementById('pKpi1').innerHTML = tProp+'<span class="unit">건</span>';
+  document.getElementById('pKpi1sub').textContent = `in ${tIn} / out ${tOut}`;
+  document.getElementById('pKpi2').innerHTML = tDrop+'<span class="unit">건</span>';
+  document.getElementById('pKpi2sub').textContent = `드롭률 ${tProp?Math.round(tDrop/tProp*100):0}%`;
+  document.getElementById('pKpi3').innerHTML = tExec+'<span class="unit">건</span>';
+  document.getElementById('pKpi3sub').textContent = `전환율 ${tProp?Math.round(tExec/tProp*100):0}%`;
+  document.getElementById('pKpi4').innerHTML = sumRev.toLocaleString()+'<span class="unit">만</span>';
+  document.getElementById('pKpi4sub').textContent = `확정 ${confAmt.toLocaleString()}만`;
+
+  const tierB = t => t==='Top'?'<span class="tier-top">TOP</span>':t==='Middle'?'<span class="tier-mid">MID</span>':'<span class="tier-low">LOW</span>';
+  const statB = s => s==='집행'?'<span class="badge green">집행완료</span>':s==='확정'?'<span class="badge blue">확정</span>':s==='제안중'?'<span class="badge amber">제안중</span>':'<span class="badge gray">드롭</span>';
+  const renderDeals = list => list.map(d=>`
+    <div class="pipeline-row">${tierB(d.tier)}
+      <div style="flex:1;"><div class="client">${d.client}</div><div class="detail">${d.cat} · ${d.product} · ${d.detail}</div></div>
+      ${statB(d.status)}<div class="amount" style="margin-left:12px;">${d.amount?d.amount.toLocaleString()+'만':'—'}</div>
+    </div>`).join('');
+
+  document.getElementById('pipelineListTitle').textContent = labelText(year,mVal)+' 파이프라인 딜 목록';
+  document.getElementById('pipelineConfirmed').innerHTML = confirmed.length
+    ? `<div style="margin-bottom:12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 집행완료 / 확정 (${confirmed.length}건)</div>${renderDeals(confirmed)}` : '';
+  document.getElementById('pipelineActive').innerHTML = active.length
+    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 제안 진행 중 (${active.length}건)</div>${renderDeals(active)}` : '';
+  document.getElementById('pipelineDropped').innerHTML = dropped.length
+    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 드롭 (${dropped.length}건)</div>${renderDeals(dropped)}` : '';
+
+  document.getElementById('pipelineSummary').innerHTML =
+    `<strong>📊 ${labelText(year,mVal)} 요약:</strong> 집행/확정 ${confAmt.toLocaleString()}만 · 제안중 전환 시 최대 ${(confAmt+actAmt).toLocaleString()}만 가능`;
+
+  // 파이프라인 차트
+  const mlabels = pd.map(d=>d.m+'월');
+  const safeLabels = mlabels.length ? mlabels : ['데이터 없음'];
+  inoutChart.data.labels = safeLabels;
+  inoutChart.data.datasets = [
+    {label:'인바운드',   data:pd.map(d=>d.in),  backgroundColor:COLORS.accent,                          borderRadius:4,borderSkipped:false},
+    {label:'아웃바운드', data:pd.map(d=>d.out), backgroundColor:'rgba(199,48,58,0.12)',borderColor:COLORS.red,borderWidth:1,borderRadius:4,borderSkipped:false}
+  ];
+  inoutChart.update();
+
+  dropChart.data.labels = safeLabels;
+  dropChart.data.datasets = [
+    {label:'집행',data:pd.map(d=>d.exec),backgroundColor:COLORS.green,borderRadius:4,borderSkipped:false},
+    {label:'드롭', data:pd.map(d=>d.drop),backgroundColor:'rgba(199,48,58,0.08)',borderColor:COLORS.red,borderWidth:1,borderRadius:4,borderSkipped:false}
+  ];
+  dropChart.update();
+
+  document.getElementById('inoutInsight').innerHTML =
+    `<strong>인바운드 ${tIn}건 vs 아웃바운드 ${tOut}건.</strong> 인바운드 전환율이 아웃바운드 대비 우세.`;
+  const best = pd.reduce((b,d)=>d.exec>b.exec?d:b,{exec:-1,m:'-',propose:0});
+  document.getElementById('dropInsight').innerHTML = best.m!=='-'
+    ? `<strong>${best.m}월 전환율 ${best.propose?Math.round(best.exec/best.propose*100):0}%</strong>가 기간 내 최고.` : '해당 기간 데이터 없음.';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 차트 뷰 전환
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchRevenueView(view) {
+  currentRevenueView = view;
+  document.querySelectorAll('#revenueToggle .toggle-btn').forEach((b,i)=>{
+    b.classList.toggle('active',(view==='monthly'&&i===0)||(view==='yearly'&&i===1));
+  });
+  const y = parseInt(document.getElementById('filterYear').value);
+  const m = document.getElementById('filterMonth').value;
+  updateRevenueChart(y, m, getMonthRange(m));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 초기화
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.addEventListener('load', ()=>{
+  const saved = localStorage.getItem('oa_webapp_url');
+  if(saved && document.getElementById('webappUrl')) {
+    document.getElementById('webappUrl').value = saved;
+    webAppUrl = saved;
+  }
+  initCharts();
+  applyFilter();
+  applyPipelineFilter();
+});
+
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>

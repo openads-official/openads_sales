@@ -708,21 +708,25 @@ body {
       <!-- 2026 -->
       <div style="margin-bottom:8px; font-size:11px; font-weight:700; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase;">2026년</div>
       <div class="report-grid" style="margin-bottom:28px;">
-        <div class="report-card" onclick="openReport()">
+
+        <!-- ✅ 클릭 가능: 리포트 링크로 이동 -->
+        <div class="report-card" onclick="openReport('1Q26')" title="클릭하면 1Q 리포트가 열립니다" style="border-color:var(--accent);position:relative;">
+          <div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-glow);padding:2px 7px;border-radius:4px;">열람 가능 ↗</div>
           <div class="quarter">2026 · Q1</div>
           <div class="report-title">1분기 성과 분석 & Q2 액션플랜</div>
-          <div class="report-meta">1월 — 3월 · 파이프라인 48건</div>
-          <div class="report-value">3,685만</div>
-          <div class="report-yoy up">YoY ▲39%</div>
+          <div class="report-meta">1월 — 3월 · 집행 완료 7건 · 제안 43건</div>
+          <div class="report-value">2,335만</div>
+          <div class="report-yoy down">YoY ▼12% · 목표 달성률 59%</div>
         </div>
-        <div class="report-card" style="opacity:0.4; cursor:default;">
+
+        <div class="report-card" style="opacity:0.35; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2026 · Q2</div>
           <div class="report-title">2분기 성과 분석</div>
           <div class="report-meta">7월 이후 생성 예정</div>
           <div class="report-value" style="color:var(--text3);">—</div>
           <div class="report-yoy flat">작성 전</div>
         </div>
-        <div class="report-card" style="opacity:0.4; cursor:default;">
+        <div class="report-card" style="opacity:0.35; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2026 · Q3</div>
           <div class="report-title">3분기 성과 분석</div>
           <div class="report-meta">10월 이후 생성 예정</div>
@@ -731,48 +735,52 @@ body {
         </div>
       </div>
 
-      <!-- 2025 -->
+      <!-- 2025 — 클릭 불가 (리포트 미생성) -->
       <div style="margin-bottom:8px; font-size:11px; font-weight:700; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase;">2025년</div>
+      <div style="margin-bottom:8px; font-size:12px; color:var(--text3); display:flex;align-items:center;gap:6px;">
+        <span style="background:var(--bg3);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;">🔒 리포트 미생성 — 클릭 불가</span>
+        <span>랄라에게 데이터 공유 시 분기별 리포트 생성 가능합니다</span>
+      </div>
       <div class="report-grid">
-        <div class="report-card">
+        <div class="report-card" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2025 · Q1</div>
           <div class="report-title">1분기 성과 분석</div>
           <div class="report-meta">1월 — 3월</div>
           <div class="report-value">2,650만</div>
-          <div class="report-yoy up">기준 연도</div>
+          <div class="report-yoy flat">리포트 미생성</div>
         </div>
-        <div class="report-card">
+        <div class="report-card" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2025 · Q2</div>
           <div class="report-title">2분기 성과 분석</div>
           <div class="report-meta">4월 — 6월</div>
           <div class="report-value">3,730만</div>
-          <div class="report-yoy up">YoY 비교 대상</div>
+          <div class="report-yoy flat">리포트 미생성</div>
         </div>
-        <div class="report-card">
+        <div class="report-card" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2025 · Q3</div>
           <div class="report-title">3분기 성과 분석</div>
           <div class="report-meta">7월 — 9월</div>
           <div class="report-value">3,755만</div>
-          <div class="report-yoy up">YoY 비교 대상</div>
+          <div class="report-yoy flat">리포트 미생성</div>
         </div>
-        <div class="report-card">
+        <div class="report-card" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2025 · Q4</div>
           <div class="report-title">4분기 성과 분석</div>
           <div class="report-meta">10월 — 12월</div>
           <div class="report-value">2,930만</div>
-          <div class="report-yoy flat">YoY 비교 대상</div>
+          <div class="report-yoy flat">리포트 미생성</div>
         </div>
-        <div class="report-card">
+        <div class="report-card" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
           <div class="quarter">2025 · 연간</div>
           <div class="report-title">2025년 연간 세일즈 리뷰</div>
           <div class="report-meta">1월 — 12월 전체</div>
           <div class="report-value">13,065만</div>
-          <div class="report-yoy up">YoY ▲4%</div>
+          <div class="report-yoy flat">리포트 미생성</div>
         </div>
       </div>
 
       <div class="callout blue" style="margin-top:24px;">
-        <strong>📁 리포트 추가 방법:</strong> 매 분기 종료 후 랄라에게 데이터 공유 → 동일 양식으로 리포트 생성 → 아카이브에 추가 등록. 리포트 클릭 시 해당 HTML 파일을 열어볼 수 있습니다.
+        <strong>📁 리포트 추가 방법:</strong> 매 분기 종료 후 랄라에게 데이터 공유 → 동일 양식으로 리포트 생성 → 아카이브에 추가 등록. 등록된 리포트는 카드 클릭 시 새 탭에서 열립니다.
       </div>
     </div>
 
@@ -1160,8 +1168,18 @@ window.addEventListener('load', () => {
 });
 
 
-function openReport() {
-  alert('📊 1Q 리포트를 열겠습니다!\n\n실제 운영 시: 저장된 HTML 파일이 새 탭에서 열립니다.');
+// 리포트 링크 맵 — 새 리포트 추가 시 여기에 등록
+const REPORT_LINKS = {
+  '1Q26': 'openads_1Q_report.html',  // 같은 폴더에 있을 때
+};
+
+function openReport(id) {
+  const url = REPORT_LINKS[id];
+  if (url) {
+    window.open(url, '_blank');
+  } else {
+    alert('해당 리포트가 아직 등록되지 않았습니다.');
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

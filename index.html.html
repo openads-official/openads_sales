@@ -1158,28 +1158,14 @@ function copyScript() {
   });
 }
 
-// 저장된 URL 불러오기
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('oa_webapp_url');
-  if (saved) {
-    document.getElementById('webappUrl').value = saved;
-    webAppUrl = saved;
-  }
-});
-
-
-// 리포트 링크 맵 — 새 리포트 추가 시 여기에 등록
-const REPORT_LINKS = {
-  '1Q26': 'openads_1Q_report.html',  // 같은 폴더에 있을 때
-};
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 리포트 링크
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const REPORT_LINKS = { '1Q26': 'openads_1Q_report.html' };
 function openReport(id) {
   const url = REPORT_LINKS[id];
-  if (url) {
-    window.open(url, '_blank');
-  } else {
-    alert('해당 리포트가 아직 등록되지 않았습니다.');
-  }
+  if (url) window.open(url, '_blank');
+  else alert('해당 리포트가 아직 등록되지 않았습니다.');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1193,55 +1179,250 @@ const COLORS = {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 마스터 데이터 (목표 = 25년 × 1.5)
+// 폴백 하드코딩 데이터 (시트 미연결 시 사용)
+// 시트 연결 후에는 이 데이터는 무시됨
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const REV25  = [800,400,1450,1100,1480,1150,450,1875,1430,1260,1245,425];
-const REV26  = [425,0,1910,null,null,null,null,null,null,null,null,null];
-const TARGET26 = REV25.map(v => Math.round(v * 1.5));
-
-const PIPE_DATA = {
-  2026:[
-    {m:1,propose:4, exec:1,drop:3, in:4, out:0},
-    {m:2,propose:26,exec:0,drop:26,in:6, out:20},
-    {m:3,propose:13,exec:6,drop:7, in:12,out:1},
-    {m:4,propose:5, exec:2,drop:0, in:1, out:4},
-    {m:5,propose:1, exec:1,drop:0, in:0, out:1},
-    {m:6,propose:0, exec:0,drop:0, in:0, out:0},
-  ],
-  2025:[
-    {m:1,propose:7, exec:2,drop:5, in:7, out:0},
-    {m:2,propose:9, exec:1,drop:8, in:9, out:0},
-    {m:3,propose:11,exec:4,drop:7, in:11,out:0},
-    {m:4,propose:11,exec:3,drop:8, in:11,out:0},
-    {m:5,propose:7, exec:5,drop:2, in:7, out:0},
-    {m:6,propose:12,exec:3,drop:9, in:12,out:0},
+const FALLBACK = {
+  // 25년 실적 (목표 기준: TARGET26 = 이 값 × 1.5)
+  rev25: [800,400,1450,1100,1480,1150,450,1875,1430,1260,1245,425],
+  // 26년 실적 — 알려진 값, 시트 미연결 시 사용
+  rev26: [425,0,1910,900,null,null,null,null,null,null,null,null],
+  // 파이프라인 월별 요약
+  pipe: {
+    2026:[
+      {m:1,propose:4, exec:1,drop:3, in:4, out:0},
+      {m:2,propose:26,exec:0,drop:26,in:6, out:20},
+      {m:3,propose:13,exec:6,drop:7, in:12,out:1},
+      {m:4,propose:5, exec:2,drop:0, in:1, out:4},
+      {m:5,propose:1, exec:1,drop:0, in:0, out:1},
+    ],
+    2025:[
+      {m:1,propose:7, exec:2,drop:5, in:7, out:0},
+      {m:2,propose:9, exec:1,drop:8, in:9, out:0},
+      {m:3,propose:11,exec:4,drop:7, in:11,out:0},
+      {m:4,propose:11,exec:3,drop:8, in:11,out:0},
+      {m:5,propose:7, exec:5,drop:2, in:7, out:0},
+      {m:6,propose:12,exec:3,drop:9, in:12,out:0},
+    ]
+  },
+  // 파이프라인 딜 목록
+  deals:[
+    {year:2026,month:1,tier:'Middle',client:'썸트렌드',cat:'솔루션사',product:'단독',amount:425,status:'집행',detail:'바이브컴퍼니 · 1월 29일'},
+    {year:2026,month:2,tier:'Top',client:'이데일리',cat:'기타',product:'리드전환 pkg',amount:450,status:'집행',detail:'2월 확정 · 3월 12일 집행'},
+    {year:2026,month:2,tier:'Top',client:'틱톡',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'윌비커뮤니케이션 · 3월 9일'},
+    {year:2026,month:3,tier:'Top',client:'데이터라이즈×버즈빌',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'3월 23일'},
+    {year:2026,month:3,tier:'Top',client:'앱스플라이어',cat:'솔루션사',product:'리드전환 pkg',amount:500,status:'집행',detail:'밴스드 · 3월 24일'},
+    {year:2026,month:3,tier:'Top',client:'Braze',cat:'솔루션사',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'Allison · 3월 31일'},
+    {year:2026,month:4,tier:'Top',client:'올리브영',cat:'브랜드(CPG)',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'HRPlan · 4월 14일'},
+    {year:2026,month:4,tier:'Top',client:'리멤버',cat:'광고매체사',product:'리드전환 pkg',amount:500,status:'집행',detail:'4월 22일'},
+    {year:2026,month:4,tier:'Top',client:'세일즈포스 AWTK',cat:'솔루션사',product:'리드전환 pkg',amount:450,status:'확정',detail:'UDM · 5월 13일 예정'},
+    {year:2026,month:4,tier:'Top',client:'세일즈포스 AI Agentic',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 웨비나'},
+    {year:2026,month:4,tier:'Top',client:'BytePlus AI day Korea',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 행사'},
+    {year:2026,month:4,tier:'Top',client:'Flow (AX Festa 2026)',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'6/25 행사'},
+    {year:2026,month:4,tier:'Low',client:'다산북스',cat:'도서/출판사',product:'브랜드스토리 pkg',amount:400,status:'제안중',detail:'제안 4/7'},
+    {year:2026,month:4,tier:'Middle',client:'한국경제인협회 IMI',cat:'기타',product:'리드전환 pkg',amount:375,status:'제안중',detail:'제안 4/6'},
+    {year:2026,month:1,tier:'Top',client:'모비두',cat:'광고매체사',product:'배너',amount:100,status:'드롭',detail:'드롭'},
+    {year:2026,month:2,tier:'Top',client:'마티니 아이오',cat:'솔루션사',product:'단독',amount:400,status:'드롭',detail:'내부 검토 후 미집행'},
+    {year:2026,month:3,tier:'Middle',client:'하나금융그룹',cat:'브랜드(CPG)',product:'리드전환 pkg',amount:500,status:'드롭',detail:'SMC · 드롭'},
   ]
 };
 
-const PIPELINE_DEALS = [
-  {year:2026,month:1,tier:'Middle',client:'썸트렌드',cat:'솔루션사',product:'단독',amount:425,status:'집행',detail:'바이브컴퍼니 · 1월 29일'},
-  {year:2026,month:2,tier:'Top',client:'이데일리',cat:'기타',product:'리드전환 pkg',amount:450,status:'집행',detail:'2월 확정 · 3월 12일 집행'},
-  {year:2026,month:2,tier:'Top',client:'틱톡',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'윌비커뮤니케이션 · 3월 9일'},
-  {year:2026,month:3,tier:'Top',client:'데이터라이즈×버즈빌',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'3월 23일'},
-  {year:2026,month:3,tier:'Top',client:'앱스플라이어',cat:'솔루션사',product:'리드전환 pkg',amount:500,status:'집행',detail:'밴스드 · 3월 24일'},
-  {year:2026,month:3,tier:'Top',client:'Braze',cat:'솔루션사',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'Allison · 3월 31일'},
-  {year:2026,month:3,tier:'Top',client:'올리브영',cat:'브랜드(CPG)',product:'브랜드스토리 pkg',amount:400,status:'확정',detail:'HRPlan · 4월 14일 예정'},
-  {year:2026,month:3,tier:'Top',client:'리멤버',cat:'광고매체사',product:'리드전환 pkg',amount:500,status:'확정',detail:'4월 22일 예정'},
-  {year:2026,month:3,tier:'Top',client:'세일즈포스 AWTK',cat:'솔루션사',product:'리드전환 pkg',amount:450,status:'확정',detail:'UDM · 5월 13일 예정'},
-  {year:2026,month:4,tier:'Top',client:'세일즈포스 AI Agentic',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 웨비나'},
-  {year:2026,month:4,tier:'Top',client:'BytePlus AI day Korea',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 행사'},
-  {year:2026,month:4,tier:'Top',client:'Flow (AX Festa 2026)',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'6/25 행사'},
-  {year:2026,month:4,tier:'Low',client:'다산북스',cat:'도서/출판사',product:'브랜드스토리 pkg',amount:400,status:'제안중',detail:'제안 4/7'},
-  {year:2026,month:4,tier:'Middle',client:'한국경제인협회 IMI',cat:'기타',product:'리드전환 pkg',amount:375,status:'제안중',detail:'제안 4/6'},
-  {year:2026,month:1,tier:'Top',client:'모비두',cat:'광고매체사',product:'배너',amount:100,status:'드롭',detail:'드롭'},
-  {year:2026,month:2,tier:'Top',client:'마티니 아이오',cat:'솔루션사',product:'단독',amount:400,status:'드롭',detail:'내부 검토 후 미집행'},
-  {year:2026,month:3,tier:'Middle',client:'하나금융그룹',cat:'브랜드(CPG)',product:'리드전환 pkg',amount:500,status:'드롭',detail:'SMC · 드롭'},
-];
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 실시간 데이터 저장소 (시트 fetch 후 여기에 저장)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let LIVE = {
+  rev26: null,      // 시트에서 읽은 26년 월별 매출 배열
+  pipe: null,       // 시트에서 읽은 파이프라인 요약
+  deals: null,      // 시트에서 읽은 딜 목록
+  lastSync: null,
+  connected: false
+};
+
+// 현재 사용할 데이터 반환 (실시간 우선, 없으면 폴백)
+function getData26() { return LIVE.rev26 || FALLBACK.rev26; }
+function getPipeData(year) {
+  if (LIVE.pipe && LIVE.pipe[year]) return LIVE.pipe[year];
+  return FALLBACK.pipe[year] || [];
+}
+function getDeals() { return LIVE.deals || FALLBACK.deals; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 구글 시트 fetch (Apps Script 웹앱)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let webAppUrl = '';
+
+async function fetchFromSheet(sheetType) {
+  if (!webAppUrl) return null;
+  try {
+    const res = await fetch(`${webAppUrl}?sheet=${sheetType}`, { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) {
+    console.warn('시트 fetch 실패:', sheetType, e.message);
+    return null;
+  }
+}
+
+// 매출 시트 → REV26 배열로 변환
+function parseRevenueSheet(rows) {
+  if (!rows || !rows.length) return null;
+  const arr = new Array(12).fill(null);
+  rows.forEach(r => {
+    const m = parseInt(r.month);
+    const rev = parseFloat(r.revenue);
+    if (m >= 1 && m <= 12 && !isNaN(rev)) arr[m-1] = rev || 0;
+  });
+  return arr;
+}
+
+// 파이프라인 시트 → 월별 요약 + 딜 목록으로 변환
+function parsePipelineSheet(rows) {
+  if (!rows || !rows.length) return null;
+  const summaryMap = {}; // {year: {month: {propose,exec,drop,in,out}}}
+  const deals = [];
+
+  rows.forEach(r => {
+    const year  = parseInt(r['연도']) || 2026;
+    const month = parseInt(r['월'])   || 0;
+    const status = (r['최종상태'] || r['단계'] || '').toString().trim();
+    const inout  = (r['구분'] || '').toString().toLowerCase();
+    const amount = parseFloat(r['매출(만원)']) || 0;
+    const tier   = (r['Tier'] || 'Low').toString();
+    const client = (r['광고주'] || '').toString();
+    const cat    = (r['광고주 카테고리'] || '').toString();
+    const product= (r['상품유형'] || '').toString();
+
+    if (!month || !client) return;
+
+    // 월별 요약 집계
+    if (!summaryMap[year]) summaryMap[year] = {};
+    if (!summaryMap[year][month]) summaryMap[year][month] = {m:month,propose:0,exec:0,drop:0,in:0,out:0};
+    const sm = summaryMap[year][month];
+    sm.propose++;
+    if (status === '드롭') sm.drop++;
+    else if (status === '집행' || status === '확정(계약완료)') sm.exec++;
+    if (inout === 'in') sm.in++;
+    else if (inout === 'out') sm.out++;
+
+    // 딜 목록
+    const dealStatus = status.includes('집행') ? '집행'
+      : status.includes('확정') ? '확정'
+      : status === '드롭' ? '드롭' : '제안중';
+
+    deals.push({
+      year, month, tier, client, cat, product, amount,
+      status: dealStatus,
+      detail: `${r['대행사명'] || ''} · ${r['제안 날짜'] ? new Date(r['제안 날짜']).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) + ' 제안' : ''}`.trim().replace(/^·\s*/, '')
+    });
+  });
+
+  // summaryMap → {year: [{m,propose,...}]}
+  const pipe = {};
+  Object.keys(summaryMap).forEach(year => {
+    pipe[parseInt(year)] = Object.values(summaryMap[year]).sort((a,b)=>a.m-b.m);
+  });
+
+  return { pipe, deals };
+}
+
+async function syncAll() {
+  const url = webAppUrl || localStorage.getItem('oa_webapp_url');
+  if (!url) { alert('먼저 웹앱 URL을 입력하고 연결 테스트를 해주세요!'); return; }
+  webAppUrl = url;
+
+  // 사이드바 싱크 버튼 애니메이션
+  const icon = document.getElementById('syncIcon');
+  const syncBtn = document.querySelector('.sync-btn');
+  if(icon){ icon.style.animation='spin 1s linear infinite'; }
+  if(syncBtn){ syncBtn.style.opacity='0.7'; }
+
+  const setStatus = (id, html) => { const el=document.getElementById(id); if(el) el.innerHTML=html; };
+  setStatus('statusRevenue',  '<span style="color:var(--amber);">🔄 동기화 중...</span>');
+  setStatus('statusPipeline', '<span style="color:var(--amber);">🔄 동기화 중...</span>');
+  setStatus('statusEfficiency','<span style="color:var(--amber);">🔄 동기화 중...</span>');
+
+  // 병렬 fetch
+  const [revRows, pipeRows] = await Promise.all([
+    fetchFromSheet('revenue'),
+    fetchFromSheet('pipeline')
+  ]);
+
+  let revOk = false, pipeOk = false;
+
+  if (revRows) {
+    const parsed = parseRevenueSheet(revRows);
+    if (parsed) { LIVE.rev26 = parsed; revOk = true; }
+  }
+  if (pipeRows) {
+    const parsed = parsePipelineSheet(pipeRows);
+    if (parsed) { LIVE.pipe = parsed.pipe; LIVE.deals = parsed.deals; pipeOk = true; }
+  }
+
+  LIVE.connected = revOk || pipeOk;
+  LIVE.lastSync = new Date();
+
+  setStatus('statusRevenue',  revOk  ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
+  setStatus('statusPipeline', pipeOk ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
+  setStatus('statusEfficiency','<span style="color:var(--text3);">— (수동 입력)</span>');
+
+  // 상태 업데이트
+  const now = LIVE.lastSync;
+  const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const syncInfo = document.getElementById('syncInfo');
+  if(syncInfo) syncInfo.textContent = `마지막 동기화: ${timeStr}`;
+  const connStatus = document.getElementById('connectStatus');
+  if(connStatus) connStatus.innerHTML = LIVE.connected
+    ? `<span style="color:var(--green);">✅ 동기화 완료 · ${timeStr} · 매출 ${revOk?'✓':'✗'} 파이프라인 ${pipeOk?'✓':'✗'}</span>`
+    : `<span style="color:var(--red);">❌ 동기화 실패 — URL 확인 필요</span>`;
+
+  // 사이드바 복원
+  if(icon){ icon.style.animation=''; }
+  if(syncBtn){ syncBtn.style.opacity='1'; }
+
+  // 연결 배너 업데이트
+  updateSyncBanner();
+
+  // 대시보드 & 파이프라인 새로고침
+  applyFilter();
+  applyPipelineFilter();
+}
+
+function connectWebApp() {
+  const url = document.getElementById('webappUrl').value.trim();
+  const status = document.getElementById('connectStatus');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    status.innerHTML = '<span style="color:var(--red);">⚠️ 올바른 Apps Script 웹앱 URL을 입력해 주세요.</span>';
+    return;
+  }
+  webAppUrl = url;
+  localStorage.setItem('oa_webapp_url', url);
+  status.innerHTML = '<span style="color:var(--amber);">🔄 연결 테스트 중...</span>';
+  syncAll();
+}
+
+function updateSyncBanner() {
+  // 상단 topbar 배지 업데이트
+  const badges = document.querySelector('.topbar-badges');
+  if (!badges) return;
+  if (LIVE.connected) {
+    const rev26 = getData26();
+    const total = rev26.reduce((s,v)=>s+(v||0),0);
+    const rev25 = FALLBACK.rev25;
+    const target = rev25.reduce((s,v)=>s+Math.round(v*1.5),0);
+    const rate = Math.round(total/target*100);
+    badges.innerHTML = `
+      <span class="tbadge green">집행 ${total.toLocaleString()}만 · 실시간</span>
+      <span class="tbadge amber">목표 달성률 ${rate}%</span>`;
+  }
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 유틸
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const REV25  = FALLBACK.rev25;
+const TARGET26 = REV25.map(v => Math.round(v * 1.5));
 const Q_MAP = {q1:[1,2,3],q2:[4,5,6],q3:[7,8,9],q4:[10,11,12]};
 const Q_LABELS = {q1:'1Q',q2:'2Q',q3:'3Q',q4:'4Q'};
 
@@ -1251,13 +1432,13 @@ function getMonthRange(v) {
   return [parseInt(v)];
 }
 function labelText(year, mv) {
-  const lbl = {all:'연간',q1:'1분기',q2:'2분기',q3:'3분기',q4:'4분기'};
-  return year + '년 ' + (lbl[mv] || mv + '월');
+  const lbl={all:'연간',q1:'1분기',q2:'2분기',q3:'3분기',q4:'4분기'};
+  return year+'년 '+(lbl[mv]||mv+'월');
 }
 function pct(a,b){ return (!b||a==null)?null:Math.round((a/b-1)*100); }
 function yoyBadge(p){
   if(p==null) return '<span class="badge gray">—</span>';
-  return p>=0 ? `<span class="badge green">▲${p}%</span>` : `<span class="badge red">▼${Math.abs(p)}%</span>`;
+  return p>=0?`<span class="badge green">▲${p}%</span>`:`<span class="badge red">▼${Math.abs(p)}%</span>`;
 }
 function rateBadge(r){
   if(r==null) return '<span class="badge gray">—</span>';
@@ -1274,13 +1455,13 @@ let currentRevenueView = 'monthly';
 
 function initCharts() {
   revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
-    type:'bar', data:{labels:MONTHS,datasets:[]},
+    type:'bar', data:{labels:MONTHS, datasets:[]},
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false}},
       scales:{
         y: {beginAtZero:true, position:'left',  grid:{color:COLORS.border}, ticks:{callback:v=>v+'만', color:COLORS.text2, font:{size:11}}},
-        y2:{beginAtZero:false,position:'right', grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%', color:COLORS.green, font:{size:11}}},
+        y2:{beginAtZero:false, position:'right', grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%', color:COLORS.green, font:{size:11}}},
         x: {grid:{display:false}, ticks:{color:COLORS.text2, font:{size:11}}}
       }
     }
@@ -1336,26 +1517,22 @@ function initCharts() {
               x:{grid:{display:false},ticks:{color:COLORS.text2,font:{size:11}}}}}
   });
 
-  // 상품·카테고리 progress bars 초기
   renderProgressBars();
 }
 
 function renderProgressBars() {
-  const pdata = [{name:'리드전환 pkg',rev:1375,cnt:3,color:'var(--accent)'},{name:'브랜드스토리 pkg',rev:800,cnt:2,color:'var(--green)'},
+  const pdata=[{name:'리드전환 pkg',rev:1375,cnt:3,color:'var(--accent)'},{name:'브랜드스토리 pkg',rev:800,cnt:2,color:'var(--green)'},
     {name:'스타터 pkg',rev:560,cnt:2,color:'var(--purple)'},{name:'단독',rev:425,cnt:1,color:'var(--amber)'},{name:'기타',rev:525,cnt:2,color:'var(--teal)'}];
-  const cdata = [{name:'솔루션사',rev:1935,cnt:6,color:'var(--accent)'},{name:'기타',rev:900,cnt:2,color:'var(--amber)'},
+  const cdata=[{name:'솔루션사',rev:1935,cnt:6,color:'var(--accent)'},{name:'기타',rev:900,cnt:2,color:'var(--amber)'},
     {name:'광고매체사',rev:450,cnt:1,color:'var(--purple)'},{name:'브랜드(CPG)',rev:400,cnt:1,color:'var(--green)'}];
-  const max = 1935;
-  document.getElementById('productBars').innerHTML = pdata.map(d=>`
-    <div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만 · ${d.cnt}건</span></div>
-    <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
-  document.getElementById('categoryBars').innerHTML = cdata.map(d=>`
-    <div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만 · ${d.cnt}건</span></div>
-    <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
+  const max=1935;
+  const pb=document.getElementById('productBars'); const cb=document.getElementById('categoryBars');
+  if(pb) pb.innerHTML=pdata.map(d=>`<div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만·${d.cnt}건</span></div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
+  if(cb) cb.innerHTML=cdata.map(d=>`<div class="prog-wrap"><div class="prog-label"><span class="name">${d.name}</span><span class="val">${d.rev.toLocaleString()}만·${d.cnt}건</span></div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d.rev/max*100)}%;background:${d.color};"></div></div></div>`).join('');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 대시보드 필터
+// 대시보드 필터 (항상 getData26() 사용 → 실시간)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function applyFilter() {
   const year   = parseInt(document.getElementById('filterYear').value);
@@ -1363,49 +1540,56 @@ function applyFilter() {
   const months = getMonthRange(mVal);
   document.getElementById('filterLabel').textContent = labelText(year, mVal);
 
-  const rev26 = year===2026 ? REV26 : REV25;
+  // ★ 실시간 or 폴백 데이터 사용
+  const rev26 = year===2026 ? getData26() : REV25;
   const rev25 = REV25;
   const target = TARGET26;
 
-  const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0),0);
-  const sumPrev = months.reduce((s,m)=>s+(rev25[m-1]||0),0);
-  const sumTgt  = year===2026 ? months.reduce((s,m)=>s+target[m-1],0) : null;
+  const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0), 0);
+  const sumPrev = months.reduce((s,m)=>s+(rev25[m-1]||0), 0);
+  const sumTgt  = year===2026 ? months.reduce((s,m)=>s+target[m-1], 0) : null;
   const yoyPct  = pct(sumRev, sumPrev);
   const ratePct = sumTgt ? Math.round(sumRev/sumTgt*100) : null;
 
-  const pd = (PIPE_DATA[year]||[]).filter(d=>months.includes(d.m));
+  const pd = getPipeData(year).filter(d=>months.includes(d.m));  // ★ 실시간
   const totalProp = pd.reduce((s,d)=>s+d.propose,0);
   const totalExec = pd.reduce((s,d)=>s+d.exec,0);
   const cvr = totalProp ? Math.round(totalExec/totalProp*100) : 0;
 
-  // KPI
+  // KPI 업데이트
   document.getElementById('kpi1Value').innerHTML = sumRev.toLocaleString()+'<span class="unit">만</span>';
-  const k1y = document.getElementById('kpi1Yoy');
-  k1y.className = 'change '+(yoyPct>=0?'up':'down');
-  k1y.textContent = yoyPct!=null ? (yoyPct>=0?'↑ YoY +':'↓ YoY ')+yoyPct+'%' : '—';
-  document.getElementById('kpi1Sub').textContent = '전년 동기 '+sumPrev.toLocaleString()+'만';
+  const k1y=document.getElementById('kpi1Yoy');
+  k1y.className='change '+(yoyPct>=0?'up':'down');
+  k1y.textContent=yoyPct!=null?(yoyPct>=0?'↑ YoY +':'↓ YoY ')+yoyPct+'%':'—';
+  document.getElementById('kpi1Sub').textContent='전년 동기 '+sumPrev.toLocaleString()+'만';
 
-  document.getElementById('kpi2Value').innerHTML = (ratePct!=null?ratePct:'—')+'<span class="unit">%</span>';
-  const k2s = document.getElementById('kpi2Sub');
+  document.getElementById('kpi2Value').innerHTML=(ratePct!=null?ratePct:'—')+'<span class="unit">%</span>';
+  const k2s=document.getElementById('kpi2Sub');
   k2s.className='change '+(ratePct>=100?'up':ratePct>=60?'flat':'down');
-  k2s.textContent = sumTgt ? '목표 '+sumTgt.toLocaleString()+'만 · 갭 '+Math.max(0,sumTgt-sumRev).toLocaleString()+'만' : '—';
-  const bar = document.getElementById('kpi2Bar');
-  bar.style.width = Math.min(100,ratePct||0)+'%';
-  bar.style.background = ratePct>=100?COLORS.green:ratePct>=60?COLORS.amber:COLORS.red;
+  k2s.textContent=sumTgt?'목표 '+sumTgt.toLocaleString()+'만 · 갭 '+Math.max(0,sumTgt-sumRev).toLocaleString()+'만':'—';
+  const bar=document.getElementById('kpi2Bar');
+  bar.style.width=Math.min(100,ratePct||0)+'%';
+  bar.style.background=ratePct>=100?COLORS.green:ratePct>=60?COLORS.amber:COLORS.red;
 
-  document.getElementById('kpi3Value').innerHTML = totalExec+'<span class="unit">건</span>';
-  const k3s = document.getElementById('kpi3Sub'); k3s.className='change '+(cvr>=30?'up':'flat'); k3s.textContent='전환율 '+cvr+'%';
+  document.getElementById('kpi3Value').innerHTML=totalExec+'<span class="unit">건</span>';
+  const k3s=document.getElementById('kpi3Sub'); k3s.className='change '+(cvr>=30?'up':'flat'); k3s.textContent='전환율 '+cvr+'%';
   document.getElementById('kpi3Sub2').textContent='제안 '+totalProp+'건 대비';
-  const avg = totalExec ? Math.round(sumRev/totalExec) : 0;
-  document.getElementById('kpi4Value').innerHTML = (avg||'—')+'<span class="unit">만</span>';
-  document.getElementById('kpi4Sub').textContent = totalExec?'건당 평균':'집행 없음';
+  const avg=totalExec?Math.round(sumRev/totalExec):0;
+  document.getElementById('kpi4Value').innerHTML=(avg||'—')+'<span class="unit">만</span>';
+  document.getElementById('kpi4Sub').textContent=totalExec?'건당 평균':'집행 없음';
+
+  // 동기화 상태 표시
+  const liveIndicator = document.getElementById('filterLabel');
+  if(liveIndicator && LIVE.connected) {
+    liveIndicator.textContent = labelText(year,mVal) + ' · 🟢 실시간';
+  }
 
   updateRevenueChart(year, mVal, months);
   updateDetailTable(year, mVal, months);
 }
 
 function updateRevenueChart(year, mVal, months) {
-  const rev26 = year===2026 ? REV26 : REV25;
+  const rev26 = year===2026 ? getData26() : REV25;  // ★ 실시간
   const rev25 = REV25;
 
   if(currentRevenueView==='monthly') {
@@ -1417,10 +1601,10 @@ function updateRevenueChart(year, mVal, months) {
 
     revenueChart.data.labels = labels;
     revenueChart.data.datasets = [
-      {type:'bar',  label:`${year}년 실적`, data:d26,    backgroundColor:COLORS.accent,     borderRadius:5,borderSkipped:false,yAxisID:'y', order:2},
-      {type:'bar',  label:`${year-1}년 실적`,data:d25,   backgroundColor:COLORS.accent_dim,  borderRadius:5,borderSkipped:false,yAxisID:'y', order:3},
+      {type:'bar',  label:`${year}년 실적`, data:d26,    backgroundColor:COLORS.accent,    borderRadius:5,borderSkipped:false,yAxisID:'y', order:2},
+      {type:'bar',  label:`${year-1}년 실적`,data:d25,   backgroundColor:COLORS.accent_dim, borderRadius:5,borderSkipped:false,yAxisID:'y', order:3},
       ...(dtgt?[{type:'line',label:'목표',data:dtgt,borderColor:COLORS.text3,borderWidth:1.5,borderDash:[5,4],pointRadius:0,backgroundColor:'transparent',yAxisID:'y',order:4}]:[]),
-      {type:'line', label:'YoY%',          data:yoyArr, borderColor:COLORS.green,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.green,backgroundColor:'rgba(13,138,78,0.06)',fill:false,yAxisID:'y2',order:1,tension:0.3}
+      {type:'line', label:'YoY%', data:yoyArr, borderColor:COLORS.green,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.green,backgroundColor:'rgba(13,138,78,0.06)',fill:false,yAxisID:'y2',order:1,tension:0.3}
     ];
     document.getElementById('revenueChartTitle').textContent=`월별 매출 + YoY% 비교 (${labelText(year,mVal)})`;
     document.getElementById('chartNote').textContent='좌축: 매출(만원) · 우축: YoY%';
@@ -1433,8 +1617,8 @@ function updateRevenueChart(year, mVal, months) {
     const rev24=[600,790,650,600,0,1700,1050,1200,700,1300,1150,1100];
     revenueChart.data.labels = MONTHS;
     revenueChart.data.datasets=[
-      {type:'line',label:'2026년',data:REV26,borderColor:COLORS.accent,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.accent,backgroundColor:'rgba(59,95,212,0.06)',fill:true,tension:0.3,yAxisID:'y'},
-      {type:'line',label:'2025년',data:REV25,borderColor:COLORS.green, borderWidth:2,  pointRadius:3,pointBackgroundColor:COLORS.green, backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[4,3]},
+      {type:'line',label:'2026년',data:getData26(),borderColor:COLORS.accent,borderWidth:2.5,pointRadius:4,pointBackgroundColor:COLORS.accent,backgroundColor:'rgba(59,95,212,0.06)',fill:true,tension:0.3,yAxisID:'y'},
+      {type:'line',label:'2025년',data:REV25,borderColor:COLORS.green, borderWidth:2, pointRadius:3,pointBackgroundColor:COLORS.green, backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[4,3]},
       {type:'line',label:'2024년',data:rev24, borderColor:COLORS.text3, borderWidth:1.5,pointRadius:2,backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[2,4]},
       {type:'line',label:'목표(26)',data:TARGET26,borderColor:COLORS.amber,borderWidth:1.5,pointRadius:0,backgroundColor:'transparent',fill:false,tension:0.3,yAxisID:'y',borderDash:[6,3]},
     ];
@@ -1450,9 +1634,9 @@ function updateRevenueChart(year, mVal, months) {
 }
 
 function updateDetailTable(year, mVal, months) {
-  const rev26 = year===2026 ? REV26 : REV25;
+  const rev26 = year===2026 ? getData26() : REV25;  // ★ 실시간
   const rev25 = REV25;
-  const pd_all = PIPE_DATA[year]||[];
+  const pd_all = getPipeData(year);  // ★ 실시간
   let rows='', totalRev=0, totalPrev=0, totalTgt=0, totalProp=0, totalExec=0;
 
   months.forEach(m=>{
@@ -1478,10 +1662,10 @@ function updateDetailTable(year, mVal, months) {
       <td>${rateBadge(rate)}</td></tr>`;
   });
 
-  const totalCvr  = totalProp ? Math.round(totalExec/totalProp*100) : 0;
-  const totalYoy  = pct(totalRev, totalPrev);
-  const totalRate = totalTgt ? Math.round(totalRev/totalTgt*100) : null;
-  const sumLabel  = Q_LABELS[mVal]||(mVal==='all'?'연간':mVal+'월');
+  const totalCvr = totalProp ? Math.round(totalExec/totalProp*100) : 0;
+  const totalYoy = pct(totalRev, totalPrev);
+  const totalRate= totalTgt ? Math.round(totalRev/totalTgt*100) : null;
+  const sumLabel = Q_LABELS[mVal]||(mVal==='all'?'연간':mVal+'월');
   rows+=`<tr class="total">
     <td>${sumLabel} 합계</td><td>${totalProp}건</td><td>${totalExec}건</td><td>${totalCvr}%</td>
     <td>${totalRev.toLocaleString()}만</td><td>${totalPrev.toLocaleString()}만</td>
@@ -1489,36 +1673,36 @@ function updateDetailTable(year, mVal, months) {
     <td>${rateBadge(totalRate)}</td></tr>`;
 
   document.getElementById('detailTableBody').innerHTML = rows;
-  document.getElementById('tableTitle').textContent = labelText(year,mVal)+' 상세 현황';
+  document.getElementById('tableTitle').textContent = labelText(year,mVal)+' 상세 현황'+(LIVE.connected?' 🟢':'');
 
-  const best = months.reduce((b,m)=>{ const r=rev26[m-1]||0; return r>(rev26[b-1]||0)?m:b; }, months[0]);
+  const best = months.reduce((b,m)=>{const r=rev26[m-1]||0;return r>(rev26[b-1]||0)?m:b;}, months[0]);
   document.getElementById('tableInsight').innerHTML =
     `<strong>💡 인사이트:</strong> ${labelText(year,mVal)} 최고 실적월 <strong>${best}월 (${(rev26[best-1]||0).toLocaleString()}만원)</strong> · 달성률 ${totalRate!=null?totalRate+'%':'—'} · YoY ${totalYoy!=null?(totalYoy>=0?'+':'')+totalYoy+'%':'—'}`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 파이프라인 필터
+// 파이프라인 필터 (실시간)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function applyPipelineFilter() {
   const year   = parseInt(document.getElementById('pFilterYear').value);
   const mVal   = document.getElementById('pFilterMonth').value;
   const months = getMonthRange(mVal);
-  document.getElementById('pFilterLabel').textContent = labelText(year, mVal);
+  document.getElementById('pFilterLabel').textContent = labelText(year,mVal)+(LIVE.connected?' 🟢':'');
 
-  const deals     = PIPELINE_DEALS.filter(d=>d.year===year&&months.includes(d.month));
+  const deals     = getDeals().filter(d=>d.year===year&&months.includes(d.month));  // ★ 실시간
   const confirmed = deals.filter(d=>d.status==='집행'||d.status==='확정');
   const active    = deals.filter(d=>d.status==='제안중');
   const dropped   = deals.filter(d=>d.status==='드롭');
 
-  const pd      = (PIPE_DATA[year]||[]).filter(d=>months.includes(d.m));
+  const pd      = getPipeData(year).filter(d=>months.includes(d.m));  // ★ 실시간
   const tProp   = pd.reduce((s,d)=>s+d.propose,0);
   const tExec   = pd.reduce((s,d)=>s+d.exec,0);
   const tDrop   = pd.reduce((s,d)=>s+d.drop,0);
   const tIn     = pd.reduce((s,d)=>s+d.in,0);
   const tOut    = pd.reduce((s,d)=>s+d.out,0);
-  const confAmt = confirmed.reduce((s,d)=>s+d.amount,0);
-  const actAmt  = active.reduce((s,d)=>s+d.amount,0);
-  const rev26   = year===2026 ? REV26 : REV25;
+  const confAmt = confirmed.reduce((s,d)=>s+(d.amount||0),0);
+  const actAmt  = active.reduce((s,d)=>s+(d.amount||0),0);
+  const rev26   = getData26();
   const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0),0);
 
   document.getElementById('pKpi1').innerHTML = tProp+'<span class="unit">건</span>';
@@ -1530,47 +1714,44 @@ function applyPipelineFilter() {
   document.getElementById('pKpi4').innerHTML = sumRev.toLocaleString()+'<span class="unit">만</span>';
   document.getElementById('pKpi4sub').textContent = `확정 ${confAmt.toLocaleString()}만`;
 
-  const tierB = t => t==='Top'?'<span class="tier-top">TOP</span>':t==='Middle'?'<span class="tier-mid">MID</span>':'<span class="tier-low">LOW</span>';
-  const statB = s => s==='집행'?'<span class="badge green">집행완료</span>':s==='확정'?'<span class="badge blue">확정</span>':s==='제안중'?'<span class="badge amber">제안중</span>':'<span class="badge gray">드롭</span>';
-  const renderDeals = list => list.map(d=>`
+  const tierB = t=>t==='Top'?'<span class="tier-top">TOP</span>':t==='Middle'?'<span class="tier-mid">MID</span>':'<span class="tier-low">LOW</span>';
+  const statB = s=>s==='집행'?'<span class="badge green">집행완료</span>':s==='확정'?'<span class="badge blue">확정</span>':s==='제안중'?'<span class="badge amber">제안중</span>':'<span class="badge gray">드롭</span>';
+  const renderDeals = list=>list.map(d=>`
     <div class="pipeline-row">${tierB(d.tier)}
       <div style="flex:1;"><div class="client">${d.client}</div><div class="detail">${d.cat} · ${d.product} · ${d.detail}</div></div>
-      ${statB(d.status)}<div class="amount" style="margin-left:12px;">${d.amount?d.amount.toLocaleString()+'만':'—'}</div>
+      ${statB(d.status)}<div class="amount" style="margin-left:12px;">${(d.amount||0).toLocaleString()}만</div>
     </div>`).join('');
 
   document.getElementById('pipelineListTitle').textContent = labelText(year,mVal)+' 파이프라인 딜 목록';
   document.getElementById('pipelineConfirmed').innerHTML = confirmed.length
-    ? `<div style="margin-bottom:12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 집행완료 / 확정 (${confirmed.length}건)</div>${renderDeals(confirmed)}` : '';
+    ? `<div style="margin-bottom:12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 집행완료 / 확정 (${confirmed.length}건)</div>${renderDeals(confirmed)}`:'';
   document.getElementById('pipelineActive').innerHTML = active.length
-    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 제안 진행 중 (${active.length}건)</div>${renderDeals(active)}` : '';
+    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 제안 진행 중 (${active.length}건)</div>${renderDeals(active)}`:'';
   document.getElementById('pipelineDropped').innerHTML = dropped.length
-    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 드롭 (${dropped.length}건)</div>${renderDeals(dropped)}` : '';
+    ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 드롭 (${dropped.length}건)</div>${renderDeals(dropped)}`:'';
 
   document.getElementById('pipelineSummary').innerHTML =
     `<strong>📊 ${labelText(year,mVal)} 요약:</strong> 집행/확정 ${confAmt.toLocaleString()}만 · 제안중 전환 시 최대 ${(confAmt+actAmt).toLocaleString()}만 가능`;
 
   // 파이프라인 차트
-  const mlabels = pd.map(d=>d.m+'월');
-  const safeLabels = mlabels.length ? mlabels : ['데이터 없음'];
-  inoutChart.data.labels = safeLabels;
-  inoutChart.data.datasets = [
-    {label:'인바운드',   data:pd.map(d=>d.in),  backgroundColor:COLORS.accent,                          borderRadius:4,borderSkipped:false},
+  const safeL = pd.length ? pd.map(d=>d.m+'월') : ['데이터 없음'];
+  inoutChart.data.labels = safeL;
+  inoutChart.data.datasets=[
+    {label:'인바운드',   data:pd.map(d=>d.in),  backgroundColor:COLORS.accent, borderRadius:4,borderSkipped:false},
     {label:'아웃바운드', data:pd.map(d=>d.out), backgroundColor:'rgba(199,48,58,0.12)',borderColor:COLORS.red,borderWidth:1,borderRadius:4,borderSkipped:false}
   ];
   inoutChart.update();
-
-  dropChart.data.labels = safeLabels;
-  dropChart.data.datasets = [
+  dropChart.data.labels = safeL;
+  dropChart.data.datasets=[
     {label:'집행',data:pd.map(d=>d.exec),backgroundColor:COLORS.green,borderRadius:4,borderSkipped:false},
     {label:'드롭', data:pd.map(d=>d.drop),backgroundColor:'rgba(199,48,58,0.08)',borderColor:COLORS.red,borderWidth:1,borderRadius:4,borderSkipped:false}
   ];
   dropChart.update();
 
-  document.getElementById('inoutInsight').innerHTML =
-    `<strong>인바운드 ${tIn}건 vs 아웃바운드 ${tOut}건.</strong> 인바운드 전환율이 아웃바운드 대비 우세.`;
-  const best = pd.reduce((b,d)=>d.exec>b.exec?d:b,{exec:-1,m:'-',propose:0});
-  document.getElementById('dropInsight').innerHTML = best.m!=='-'
-    ? `<strong>${best.m}월 전환율 ${best.propose?Math.round(best.exec/best.propose*100):0}%</strong>가 기간 내 최고.` : '해당 기간 데이터 없음.';
+  document.getElementById('inoutInsight').innerHTML=`<strong>인바운드 ${tIn}건 vs 아웃바운드 ${tOut}건.</strong> 인바운드 전환율이 아웃바운드 대비 우세.`;
+  const best=pd.reduce((b,d)=>d.exec>b.exec?d:b,{exec:-1,m:'-',propose:0});
+  document.getElementById('dropInsight').innerHTML=best.m!=='-'
+    ?`<strong>${best.m}월 전환율 ${best.propose?Math.round(best.exec/best.propose*100):0}%</strong>가 기간 내 최고.`:'해당 기간 데이터 없음.';
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1581,24 +1762,51 @@ function switchRevenueView(view) {
   document.querySelectorAll('#revenueToggle .toggle-btn').forEach((b,i)=>{
     b.classList.toggle('active',(view==='monthly'&&i===0)||(view==='yearly'&&i===1));
   });
-  const y = parseInt(document.getElementById('filterYear').value);
-  const m = document.getElementById('filterMonth').value;
+  const y=parseInt(document.getElementById('filterYear').value);
+  const m=document.getElementById('filterMonth').value;
   updateRevenueChart(y, m, getMonthRange(m));
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 초기화
+// 초기화 + 자동 싱크
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-window.addEventListener('load', ()=>{
+window.addEventListener('load', async ()=>{
+  // 저장된 URL 복원
   const saved = localStorage.getItem('oa_webapp_url');
-  if(saved && document.getElementById('webappUrl')) {
-    document.getElementById('webappUrl').value = saved;
+  if(saved) {
     webAppUrl = saved;
+    const inp = document.getElementById('webappUrl');
+    if(inp) inp.value = saved;
   }
+
   initCharts();
   applyFilter();
   applyPipelineFilter();
+
+  // URL이 있으면 페이지 로드 시 자동 동기화
+  if(webAppUrl) {
+    setTimeout(async ()=>{
+      await syncAll();
+      applyFilter();
+      applyPipelineFilter();
+    }, 500);
+  }
 });
+
+// 사이드바 동기화 버튼
+function doSync() {
+  if(webAppUrl) {
+    syncAll();
+  } else {
+    // URL 미설정 시 데이터 관리 탭으로 이동
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('page-sync').classList.add('active');
+    document.querySelector('[onclick="showPage(\'sync\')"]').classList.add('active');
+    document.getElementById('topbarTitle').textContent = '데이터 관리 · 동기화';
+    alert('⚙️ Apps Script 웹앱 URL을 먼저 입력해 주세요!\n\n데이터 관리 탭 → 웹앱 URL 입력 → 연결 테스트');
+  }
+}
 
 const style = document.createElement('style');
 style.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';

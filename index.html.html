@@ -350,21 +350,21 @@ body {
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">메인</div>
-    <div class="nav-item active" onclick="showPage('dashboard')">
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
       <span class="nav-icon">📊</span> 매출 현황
     </div>
-    <div class="nav-item" onclick="showPage('pipeline')">
+    <div class="nav-item" onclick="showPage('pipeline',this)">
       <span class="nav-icon">🔄</span> 파이프라인
     </div>
-    <div class="nav-item" onclick="showPage('efficiency')">
+    <div class="nav-item" onclick="showPage('efficiency',this)">
       <span class="nav-icon">⚡</span> 광고 효율
     </div>
     <div class="nav-section">리포트</div>
-    <div class="nav-item" onclick="showPage('archive')">
+    <div class="nav-item" onclick="showPage('archive',this)">
       <span class="nav-icon">📁</span> 리포트 아카이브
     </div>
     <div class="nav-section">설정</div>
-    <div class="nav-item" onclick="showPage('sync')">
+    <div class="nav-item" onclick="showPage('sync',this)">
       <span class="nav-icon">🔗</span> 데이터 관리
     </div>
   </nav>
@@ -916,43 +916,52 @@ function getData(sheetName) {
 
   const raw = targetSheet.getDataRange().getValues();
 
-  // 월별 매출 요약 (revenue 시트 기준: 행5~16 = 1~12월)
+  // ★ 매출: 26_광고매출현황_r 시트 행5~16 (월별 집계행)
+  // 컬럼: A=연도, B=월, C=인바운드, D=아웃바운드, E=전체, F=드롭, G=집행건수, H=매출(만원)
   if (sheetName === 'revenue') {
     const monthly = [];
-    for (let i = 4; i <= 15; i++) {
+    for (let i = 4; i <= 16; i++) {
       const row = raw[i];
-      if (!row || !row[1]) continue;
+      if (!row || !row[0] || !row[1]) continue;
+      const yr  = Number(row[0]);
+      const mo  = Number(row[1]);
+      const rev = Number(row[7]);   // H열: 매출(만원) — 집행월 기준 SUMIFS 수식 결과
+      if (!yr || !mo) continue;
       monthly.push({
-        year  : row[0],
-        month : row[1],
-        inbound  : row[2] || 0,
-        outbound : row[3] || 0,
-        total    : row[4] || 0,
-        dropped  : row[5] || 0,
-        executed : row[6] || 0,
-        revenue  : row[7] || 0,
-        target25 : row[8] || 0,
-        yoy      : row[9] || 0
+        year    : yr,
+        month   : mo,
+        inbound : Number(row[2]) || 0,
+        outbound: Number(row[3]) || 0,
+        total   : Number(row[4]) || 0,
+        dropped : Number(row[5]) || 0,
+        executed: Number(row[6]) || 0,
+        revenue : isNaN(rev) ? 0 : rev,   // ★ 0원도 명시적으로 반환
+        target25: Number(row[8]) || 0,
+        yoy     : Number(row[9]) || 0
       });
     }
     return monthly;
   }
 
-  // 파이프라인 (pipeline 시트: 헤더 1행 + 데이터)
+  // 파이프라인 (헤더 1행 + 데이터)
   if (sheetName === 'pipeline') {
-    const header = raw[0];
+    const header = raw[0].map(h => String(h).trim());
     const rows = [];
     for (let i = 1; i < raw.length; i++) {
       const row = raw[i];
-      if (!row[6]) continue; // 제안 날짜 없으면 skip
+      // 제안 날짜(G열, index 6) 없으면 skip
+      if (!row[6] && !row[10]) continue;
       const obj = {};
-      header.forEach((h, j) => { obj[h] = row[j]; });
+      header.forEach((h, j) => {
+        // 날짜 객체는 ISO 문자열로 변환
+        obj[h] = (row[j] instanceof Date) ? row[j].toISOString() : row[j];
+      });
       rows.push(obj);
     }
     return rows;
   }
 
-  // 광고효율 (efficiency 시트)
+  // 광고효율
   if (sheetName === 'efficiency') {
     const header = raw[0];
     const rows = [];
@@ -1026,7 +1035,7 @@ function testData() {
           <button onclick="syncAll()" style="padding:8px 18px;background:var(--green-bg);border:1px solid rgba(13,138,78,0.2);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;">
             ↻ 전체 동기화
           </button>
-          <button onclick="showPage('dashboard')" style="padding:8px 18px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;">
+          <button onclick="showPage('dashboard',this)" style="padding:8px 18px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;">
             대시보드 확인 →
           </button>
         </div>
@@ -1063,28 +1072,13 @@ const pageNames = {
   'sync': '데이터 관리 · 동기화'
 };
 
-function showPage(id) {
+function showPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
-  document.getElementById('topbarTitle').textContent = pageNames[id];
-}
-
-// ── Sync ──
-function doSync() {
-  const btn = document.querySelector('.sync-btn');
-  const icon = document.getElementById('syncIcon');
-  icon.style.animation = 'spin 1s linear infinite';
-  icon.style.display = 'inline-block';
-  btn.style.opacity = '0.7';
-  setTimeout(() => {
-    icon.style.animation = '';
-    btn.style.opacity = '1';
-    const now = new Date();
-    document.getElementById('syncInfo').textContent =
-      `마지막 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-  }, 1500);
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = pageNames[id] || id;
 }
 
 function applyData() {
@@ -1092,55 +1086,6 @@ function applyData() {
   const pip = document.getElementById('pipelinePaste').value;
   if (!rev && !pip) { alert('데이터를 붙여넣어 주세요!'); return; }
   alert('✅ 데이터가 적용되었습니다!\n\n(실제 운영 시 파싱 로직이 동작하여 차트가 업데이트됩니다)');
-}
-
-// ── Apps Script Web App ──
-let webAppUrl = '';
-
-function connectWebApp() {
-  const url = document.getElementById('webappUrl').value.trim();
-  const status = document.getElementById('connectStatus');
-  if (!url || !url.startsWith('https://script.google.com')) {
-    status.innerHTML = '<span style="color:var(--red);">⚠️ 올바른 Apps Script 웹앱 URL을 입력해 주세요.</span>';
-    return;
-  }
-  webAppUrl = url;
-  status.innerHTML = '<span style="color:var(--amber);">🔄 연결 테스트 중...</span>';
-
-  // 실제 환경에서는 fetch(url + '?sheet=revenue') 호출
-  // 시뮬레이션: 1.5초 후 성공 처리
-  setTimeout(() => {
-    status.innerHTML = '<span style="color:var(--green);">✅ 연결 성공! 웹앱 URL이 저장되었습니다. 전체 동기화를 눌러주세요.</span>';
-    localStorage.setItem('oa_webapp_url', url);
-  }, 1500);
-}
-
-function syncAll() {
-  const url = webAppUrl || localStorage.getItem('oa_webapp_url');
-  if (!url) {
-    alert('먼저 웹앱 URL을 입력하고 연결 테스트를 해주세요!');
-    return;
-  }
-  const sheets = ['revenue', 'pipeline', 'efficiency'];
-  const ids = ['statusRevenue', 'statusPipeline', 'statusEfficiency'];
-  ids.forEach(id => {
-    document.getElementById(id).innerHTML = '<span style="color:var(--amber);">🔄 동기화 중...</span>';
-  });
-
-  // 시뮬레이션: 순차적으로 완료 처리
-  sheets.forEach((sheet, i) => {
-    setTimeout(() => {
-      const el = document.getElementById(ids[i]);
-      el.innerHTML = '<span style="color:var(--green);">✅ 완료</span>';
-      if (i === sheets.length - 1) {
-        const now = new Date();
-        document.getElementById('syncInfo').textContent =
-          `마지막 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-        document.getElementById('connectStatus').innerHTML =
-          `<span style="color:var(--green);">✅ 전체 동기화 완료 · ${now.toLocaleTimeString('ko-KR')}</span>`;
-      }
-    }, (i + 1) * 800);
-  });
 }
 
 function copyScript() {
@@ -1264,15 +1209,21 @@ async function fetchFromSheet(sheetType) {
   }
 }
 
-// 매출 시트 → REV26 배열로 변환
+// 매출 시트(26_광고매출현황_r) → REV26 배열로 변환
+// 시트 구조: row[0]=연도, row[1]=월, row[7]=매출(만원) — 집행월 기준
 function parseRevenueSheet(rows) {
   if (!rows || !rows.length) return null;
   const arr = new Array(12).fill(null);
   rows.forEach(r => {
-    const m = parseInt(r.month);
+    // Apps Script에서 넘어오는 객체 키: year, month, revenue
+    const m   = parseInt(r.month);
     const rev = parseFloat(r.revenue);
-    if (m >= 1 && m <= 12 && !isNaN(rev)) arr[m-1] = rev || 0;
+    if (m >= 1 && m <= 12) {
+      // 0원도 "집행 있음"으로 처리 (null과 구분)
+      arr[m-1] = isNaN(rev) ? null : rev;
+    }
   });
+  // 한 번도 안 나온 달은 null 유지 (미집행)
   return arr;
 }
 
@@ -1799,11 +1750,8 @@ function doSync() {
     syncAll();
   } else {
     // URL 미설정 시 데이터 관리 탭으로 이동
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    document.getElementById('page-sync').classList.add('active');
-    document.querySelector('[onclick="showPage(\'sync\')"]').classList.add('active');
-    document.getElementById('topbarTitle').textContent = '데이터 관리 · 동기화';
+    const syncNavItem = document.querySelector('.nav-item[onclick*="sync"]');
+    showPage('sync', syncNavItem);
     alert('⚙️ Apps Script 웹앱 URL을 먼저 입력해 주세요!\n\n데이터 관리 탭 → 웹앱 URL 입력 → 연결 테스트');
   }
 }

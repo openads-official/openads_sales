@@ -642,29 +642,53 @@ body {
     <div class="page" id="page-efficiency">
       <div class="page-header">
         <h1>광고 효율 현황</h1>
-        <p>집행 광고별 오픈율·클릭률·CPC 성과 분석</p>
+        <p>기간 필터를 선택하면 해당 기간 집행 광고의 효율이 표시됩니다</p>
       </div>
 
-      <div class="metric-grid">
+      <!-- 필터 바 -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
+        <span style="font-size:12px;font-weight:700;color:var(--text3);">기간 선택</span>
+        <select id="effYear" onchange="applyEffFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="all">전체 (24~26년)</option>
+          <option value="2026" selected>2026년</option>
+          <option value="2025">2025년</option>
+          <option value="2024">2024년</option>
+        </select>
+        <select id="effMonth" onchange="applyEffFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
+          <option value="all">전체 월</option>
+          <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+          <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+          <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          <optgroup label="분기">
+            <option value="q1">1분기</option><option value="q2">2분기</option>
+            <option value="q3">3분기</option><option value="q4">4분기</option>
+          </optgroup>
+        </select>
+        <div id="effLabel" style="font-size:13px;font-weight:700;color:var(--accent);margin-left:4px;"></div>
+      </div>
+
+      <!-- KPI (동적) -->
+      <div class="metric-grid" id="effKpiGrid">
         <div class="metric-card">
           <div class="label">평균 오픈율</div>
-          <div class="value">22<span class="unit">%</span></div>
-          <div class="change up">업계 평균 대비 양호</div>
+          <div class="value" id="effKpi1">—</div>
+          <div class="sub" id="effKpi1sub">필터 기간 기준</div>
         </div>
         <div class="metric-card">
-          <div class="label">평균 광고 CTR</div>
-          <div class="value">1.8<span class="unit">%</span></div>
-          <div class="change up">스토리형 기준</div>
+          <div class="label">평균 CTR</div>
+          <div class="value" id="effKpi2">—</div>
+          <div class="sub" id="effKpi2sub">클릭수/오픈수</div>
         </div>
         <div class="metric-card">
-          <div class="label">누적 집행 건수</div>
-          <div class="value">47<span class="unit">건</span></div>
-          <div class="sub">24~25년 전체</div>
+          <div class="label">집행 건수</div>
+          <div class="value" id="effKpi3">—</div>
+          <div class="sub" id="effKpi3sub">해당 기간</div>
         </div>
         <div class="metric-card">
-          <div class="label">평균 CPC</div>
-          <div class="value">~2<span class="unit">만</span></div>
-          <div class="sub">광고 유형별 차이 큼</div>
+          <div class="label">총 집행 매출</div>
+          <div class="value" id="effKpi4">—</div>
+          <div class="sub" id="effKpi4sub">해당 기간 합계</div>
         </div>
       </div>
 
@@ -676,7 +700,7 @@ body {
           </div>
         </div>
         <div class="card">
-          <div class="card-title">월별 발송수 추이 (누적)</div>
+          <div class="card-title">월별 발송수 추이</div>
           <div class="chart-wrap" style="height:220px;">
             <canvas id="sendChart"></canvas>
           </div>
@@ -684,65 +708,18 @@ body {
       </div>
 
       <div class="card">
-        <div class="card-title">주요 집행 광고 성과 (24~25년 샘플)</div>
+        <div class="card-title" id="effTableTitle">집행 광고 성과 상세</div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>광고주</th><th>상품유형</th><th>매출</th>
+              <th>집행일</th><th style="text-align:left;">광고주</th>
+              <th style="text-align:left;">상품유형</th><th>매출</th>
               <th>발송수</th><th>오픈수</th><th>오픈율</th><th>클릭수</th><th>CTR</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="bold">세일즈포스</td>
-              <td><span class="badge blue">스토리형</span></td>
-              <td class="accent">350만</td>
-              <td>52,737</td><td>11,732</td>
-              <td><span class="badge green">22.2%</span></td>
-              <td>219</td>
-              <td><span class="badge green">1.87%</span></td>
-            </tr>
-            <tr>
-              <td class="bold">어도비</td>
-              <td><span class="badge blue">단독</span></td>
-              <td class="accent">400만</td>
-              <td>51,735</td><td>11,490</td>
-              <td><span class="badge green">22.2%</span></td>
-              <td>608</td>
-              <td><span class="badge green">5.29%</span></td>
-            </tr>
-            <tr>
-              <td class="bold">틱톡포비즈니스</td>
-              <td><span class="badge purple">단독</span></td>
-              <td class="accent">400만</td>
-              <td>50,678</td><td>11,693</td>
-              <td><span class="badge amber">23.1%</span></td>
-              <td>922</td>
-              <td><span class="badge green">7.89%</span></td>
-            </tr>
-            <tr>
-              <td class="bold">메디힐</td>
-              <td><span class="badge teal">콘텐츠배너형</span></td>
-              <td class="accent">250만</td>
-              <td>180,416</td><td>—</td>
-              <td class="flat">배너형</td>
-              <td>514</td>
-              <td><span class="badge amber">0.29%</span></td>
-            </tr>
-            <tr>
-              <td class="bold">츄파춥스</td>
-              <td><span class="badge blue">스토리형</span></td>
-              <td class="accent">300만</td>
-              <td>52,347</td><td>12,024</td>
-              <td><span class="badge green">22.9%</span></td>
-              <td>167</td>
-              <td><span class="badge amber">1.39%</span></td>
-            </tr>
-          </tbody>
+          <tbody id="effTableBody"></tbody>
         </table>
-        <div class="callout blue" style="margin-top:16px;">
-          <strong>💡 인사이트:</strong> 단독 광고의 CTR이 스토리형 대비 높은 경향. 틱톡(7.89%), 어도비(5.29%) 등 다운로드·체험 목적 광고의 클릭 효율이 특히 우수. 리드전환 pkg 제안 시 이 레퍼런스 활용 권장.
-        </div>
+        <div class="callout blue" id="effInsight" style="margin-top:16px;"></div>
       </div>
     </div>
 
@@ -1300,50 +1277,95 @@ function parseRevenueSheet(rows) {
 }
 
 // 파이프라인 시트 → 월별 요약 + 딜 목록으로 변환
+// ★ 핵심: 집행/확정 건은 집행일자 기준 월, 나머지는 제안월 기준
 function parsePipelineSheet(rows) {
   if (!rows || !rows.length) return null;
-  const summaryMap = {}; // {year: {month: {propose,exec,drop,in,out}}}
+  const summaryMap = {};
   const deals = [];
 
   rows.forEach(r => {
-    const year  = parseInt(r['연도']) || 2026;
-    const month = parseInt(r['월'])   || 0;
-    const status = (r['최종상태'] || r['단계'] || '').toString().trim();
-    const inout  = (r['구분'] || '').toString().toLowerCase();
-    const amount = parseFloat(r['매출(만원)']) || 0;
-    const tier   = (r['Tier'] || 'Low').toString();
-    const client = (r['광고주'] || '').toString();
-    const cat    = (r['광고주 카테고리'] || '').toString();
-    const product= (r['상품유형'] || '').toString();
+    const proposeYear  = parseInt(r['연도']) || 2026;
+    const proposeMonth = parseInt(r['월'])   || 0;
+    const rawStatus = (r['최종상태'] || r['단계'] || '').toString().trim();
+    const inout     = (r['구분'] || '').toString().toLowerCase();
+    const amount    = parseFloat(r['매출(만원)']) || 0;
+    const tier      = (r['Tier'] || 'Low').toString();
+    const client    = (r['광고주'] || '').toString().trim();
+    const cat       = (r['광고주 카테고리'] || '').toString();
+    const product   = (r['상품유형'] || '').toString();
 
-    if (!month || !client) return;
+    if (!proposeMonth || !client) return;
 
-    // 월별 요약 집계
-    if (!summaryMap[year]) summaryMap[year] = {};
-    if (!summaryMap[year][month]) summaryMap[year][month] = {m:month,propose:0,exec:0,drop:0,in:0,out:0};
-    const sm = summaryMap[year][month];
-    sm.propose++;
-    if (status === '드롭') sm.drop++;
-    else if (status === '집행' || status === '확정(계약완료)') sm.exec++;
-    if (inout === 'in') sm.in++;
-    else if (inout === 'out') sm.out++;
+    // ★ 상태 정규화 — 시트의 다양한 표현을 통일
+    let status;
+    const s = rawStatus;
+    if (s === '드롭' || s === '드롭(미집행)') {
+      status = '드롭';
+    } else if (s === '집행' || s === '집행완료') {
+      status = '집행';
+    } else if (s.includes('확정') || s === '집행') {
+      status = '확정';
+    } else {
+      status = '제안중';  // 제안(상품안내), 협의(조건 협의) 등 → 제안중
+    }
 
-    // 딜 목록
-    const dealStatus = status.includes('집행') ? '집행'
-      : status.includes('확정') ? '확정'
-      : status === '드롭' ? '드롭' : '제안중';
+    const isExecOrFixed = status === '집행' || status === '확정';
+
+    // ★ 집행월 추출 — 집행일자 우선, 없으면 제안월 유지
+    let execYear = proposeYear, execMonth = proposeMonth;
+    const execDateRaw = r['집행일자'];
+    if (isExecOrFixed && execDateRaw && execDateRaw !== '-' && execDateRaw !== '') {
+      try {
+        const d = new Date(execDateRaw);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+          execYear  = d.getFullYear();
+          execMonth = d.getMonth() + 1;
+        }
+      } catch(e) {}
+    }
+
+    // ── 제안월 기준으로 propose/in/out 집계 ──
+    if (!summaryMap[proposeYear]) summaryMap[proposeYear] = {};
+    if (!summaryMap[proposeYear][proposeMonth])
+      summaryMap[proposeYear][proposeMonth] = {m:proposeMonth, propose:0, exec:0, drop:0, in:0, out:0};
+    const smP = summaryMap[proposeYear][proposeMonth];
+    smP.propose++;
+    if (inout === 'in') smP.in++;
+    else if (inout === 'out') smP.out++;
+
+    if (status === '드롭') {
+      smP.drop++;
+    } else if (isExecOrFixed) {
+      // ── 집행월 기준으로 exec 집계 ──
+      if (!summaryMap[execYear]) summaryMap[execYear] = {};
+      if (!summaryMap[execYear][execMonth])
+        summaryMap[execYear][execMonth] = {m:execMonth, propose:0, exec:0, drop:0, in:0, out:0};
+      summaryMap[execYear][execMonth].exec++;
+    }
+
+    // ── 딜 목록: month = 집행월 (집행/확정) or 제안월 (나머지) ──
+    const dealMonth = isExecOrFixed ? execMonth : proposeMonth;
+    const dealYear  = isExecOrFixed ? execYear  : proposeYear;
+
+    const fmtDate = (raw) => {
+      if (!raw || raw === '-') return '';
+      try { const d=new Date(raw); return isNaN(d)?'':d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}); } catch(e){ return ''; }
+    };
+    const execStr = fmtDate(execDateRaw);
+    const propStr = fmtDate(r['제안 날짜']);
+    const detailParts = [r['대행사명']||'', execStr ? execStr+' 집행' : propStr ? propStr+' 제안' : ''].filter(Boolean);
 
     deals.push({
-      year, month, tier, client, cat, product, amount,
-      status: dealStatus,
-      detail: `${r['대행사명'] || ''} · ${r['제안 날짜'] ? new Date(r['제안 날짜']).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) + ' 제안' : ''}`.trim().replace(/^·\s*/, '')
+      year: dealYear, month: dealMonth,
+      tier, client, cat, product, amount, status,
+      detail: detailParts.join(' · ')
     });
   });
 
-  // summaryMap → {year: [{m,propose,...}]}
+  // summaryMap → {year: [{m,...}]}
   const pipe = {};
-  Object.keys(summaryMap).forEach(year => {
-    pipe[parseInt(year)] = Object.values(summaryMap[year]).sort((a,b)=>a.m-b.m);
+  Object.keys(summaryMap).forEach(y => {
+    pipe[parseInt(y)] = Object.values(summaryMap[y]).sort((a,b)=>a.m-b.m);
   });
 
   return { pipe, deals };
@@ -1471,8 +1493,110 @@ function rateBadge(r){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 차트 인스턴스
+// 광고 효율 데이터 (광고효율 시트 기반)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const EFF_DATA = [
+  // 2026년
+  {year:2026,month:1, client:'썸트렌드',       product:'단독',        amount:425, send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:3, client:'틱톡 (윌비)',     product:'스타터 pkg',  amount:280, send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:3, client:'이데일리',        product:'리드전환 pkg',amount:450, send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:3, client:'데이터라이즈×버즈빌',product:'스타터 pkg',amount:280,send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:3, client:'앱스플라이어',    product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:3, client:'Braze',           product:'브랜드스토리 pkg',amount:400,send:null,open:null,click:null,ctr:null},
+  {year:2026,month:4, client:'올리브영',        product:'브랜드스토리 pkg',amount:400,send:null,open:null,click:null,ctr:null},
+  {year:2026,month:4, client:'리멤버',          product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
+  {year:2026,month:4, client:'얀고애즈',        product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
+  // 2025년
+  {year:2025,month:1, client:'세일즈포스',      product:'스토리형',    amount:400, send:52737, open:11732, click:219,   ctr:1.87},
+  {year:2025,month:2, client:'어도비',          product:'단독',        amount:400, send:51735, open:11490, click:608,   ctr:5.29},
+  {year:2025,month:3, client:'소니 픽처스',     product:'스토리형',    amount:350, send:52000, open:11500, click:180,   ctr:1.57},
+  // 2024년
+  {year:2024,month:1, client:'드롭탑(필메이트)', product:'스토리형',   amount:300, send:50570, open:11707, click:178,   ctr:1.52},
+  {year:2024,month:1, client:'틱톡포비즈니스',  product:'단독',        amount:400, send:50678, open:11693, click:922,   ctr:7.89},
+  {year:2024,month:2, client:'메디힐',          product:'콘텐츠배너형',amount:250, send:180416,open:null,  click:514,   ctr:0.29},
+  {year:2024,month:2, client:'효성',            product:'단독',        amount:350, send:51586, open:11631, click:293,   ctr:2.52},
+  {year:2024,month:2, client:'어도비',          product:'단독',        amount:400, send:51735, open:11490, click:608,   ctr:5.29},
+  {year:2024,month:3, client:'츄파춥스',        product:'스토리형',    amount:300, send:52347, open:12024, click:167,   ctr:1.39},
+  {year:2024,month:3, client:'세일즈포스',      product:'스토리형',    amount:350, send:52737, open:11732, click:219,   ctr:1.87},
+];
+
+function applyEffFilter() {
+  const yearVal  = document.getElementById('effYear').value;
+  const monthVal = document.getElementById('effMonth').value;
+  const months   = getMonthRange(monthVal);
+
+  // 필터링
+  let filtered = EFF_DATA;
+  if (yearVal !== 'all') {
+    filtered = filtered.filter(d => d.year === parseInt(yearVal));
+  }
+  if (monthVal !== 'all') {
+    filtered = filtered.filter(d => months.includes(d.month));
+  }
+
+  // 레이블
+  const yLbl = yearVal === 'all' ? '전체' : yearVal + '년';
+  const mLbl = monthVal === 'all' ? '전체' : (getMonthRange(monthVal).length > 1 ? Q_LABELS[monthVal]||'전체' : monthVal + '월');
+  document.getElementById('effLabel').textContent = yLbl + ' ' + mLbl;
+  document.getElementById('effTableTitle').textContent = `집행 광고 성과 상세 (${yLbl} ${mLbl})`;
+
+  // KPI 계산
+  const withOpen  = filtered.filter(d => d.open  != null && d.send != null);
+  const withClick = filtered.filter(d => d.click != null && d.open != null);
+  const avgOpenRate = withOpen.length  ? (withOpen.reduce((s,d)=>s+(d.open/d.send*100),0)/withOpen.length).toFixed(1)  : null;
+  const avgCtr      = withClick.length ? (withClick.reduce((s,d)=>s+d.ctr,0)/withClick.length).toFixed(2) : null;
+  const totalAmt    = filtered.reduce((s,d)=>s+d.amount,0);
+
+  document.getElementById('effKpi1').innerHTML = (avgOpenRate ? avgOpenRate+'<span class="unit">%</span>' : '—');
+  document.getElementById('effKpi1sub').textContent = withOpen.length + '건 평균';
+  document.getElementById('effKpi2').innerHTML = (avgCtr ? avgCtr+'<span class="unit">%</span>' : '—');
+  document.getElementById('effKpi2sub').textContent = withClick.length + '건 평균';
+  document.getElementById('effKpi3').innerHTML = filtered.length + '<span class="unit">건</span>';
+  document.getElementById('effKpi3sub').textContent = yearVal==='2026' ? '26년 데이터 누적 중' : '해당 기간';
+  document.getElementById('effKpi4').innerHTML = totalAmt.toLocaleString() + '<span class="unit">만</span>';
+  document.getElementById('effKpi4sub').textContent = '집행 합계';
+
+  // 테이블 렌더링
+  const pTypeBadge = p => {
+    const m = {'스토리형':'blue','단독':'purple','콘텐츠배너형':'teal','리드전환 pkg':'green','스타터 pkg':'amber','브랜드스토리 pkg':'blue'};
+    return `<span class="badge ${m[p]||'gray'}">${p}</span>`;
+  };
+  const openBadge = r => {
+    if (r==null) return '<span class="flat">—</span>';
+    return r >= 22 ? `<span class="badge green">${r.toFixed(1)}%</span>` : `<span class="badge amber">${r.toFixed(1)}%</span>`;
+  };
+  const ctrBadge = r => {
+    if (r==null) return '<span class="flat">—</span>';
+    return r >= 3 ? `<span class="badge green">${r}%</span>` : r >= 1.5 ? `<span class="badge amber">${r}%</span>` : `<span class="badge gray">${r}%</span>`;
+  };
+
+  const rows = filtered.length === 0
+    ? `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px;">해당 기간 집행 데이터가 없습니다</td></tr>`
+    : filtered.map(d => {
+        const openRate = (d.open && d.send) ? (d.open/d.send*100) : null;
+        return `<tr>
+          <td class="dim">${d.year}년 ${d.month}월</td>
+          <td style="text-align:left;font-weight:700;">${d.client}</td>
+          <td style="text-align:left;">${pTypeBadge(d.product)}</td>
+          <td class="accent">${d.amount.toLocaleString()}만</td>
+          <td>${d.send ? d.send.toLocaleString() : '<span class="flat">—</span>'}</td>
+          <td>${d.open ? d.open.toLocaleString() : '<span class="flat">—</span>'}</td>
+          <td>${openBadge(openRate)}</td>
+          <td>${d.click != null ? d.click.toLocaleString() : '<span class="flat">—</span>'}</td>
+          <td>${ctrBadge(d.ctr)}</td>
+        </tr>`;
+      }).join('');
+
+  document.getElementById('effTableBody').innerHTML = rows;
+
+  // 인사이트
+  const topCtr = filtered.filter(d=>d.ctr!=null).sort((a,b)=>b.ctr-a.ctr)[0];
+  document.getElementById('effInsight').innerHTML = topCtr
+    ? `<strong>💡 ${yLbl} ${mLbl} 인사이트:</strong> 가장 높은 CTR은 <strong>${topCtr.client} (${topCtr.ctr}% · ${topCtr.product})</strong>. 단독·리드전환 pkg 광고의 클릭 효율이 스토리형 대비 우수한 경향.`
+    : `<strong>💡 인사이트:</strong> 26년 광고 효율 데이터는 시트 동기화 후 자동 반영됩니다.`;
+}
+
+
 let revenueChart, productChart, categoryChart, inoutChart, dropChart;
 let currentRevenueView = 'monthly';
 
@@ -1828,6 +1952,7 @@ window.addEventListener('load', async ()=>{
   initCharts();
   applyFilter();
   applyPipelineFilter();
+  applyEffFilter();
 
   // URL이 있으면 페이지 로드 시 자동 동기화
   if(webAppUrl) {

@@ -1188,45 +1188,59 @@ const COLORS = {
 const FALLBACK = {
   // 25년 실적 (목표 기준: TARGET26 = 이 값 × 1.5)
   rev25: [800,400,1450,1100,1480,1150,450,1875,1430,1260,1245,425],
-  // 26년 실적 — 알려진 값, 시트 미연결 시 사용
-  rev26: [425,0,1910,900,null,null,null,null,null,null,null,null],
-  // 파이프라인 월별 요약
+  // 26년 실적 — 집행월 기준
+  // 1월: 썸트렌드 425
+  // 2월: 집행 없음 0
+  // 3월: 틱톡280 + 이데일리450 + DMS0 + 데이터라이즈×버즈빌280 + 앱스플라이어500 + Braze400 = 1,910
+  // 4월: 올리브영400 + 리멤버500 + 얀고애즈500 = 1,400
+  rev26: [425, 0, 1910, 1400, null, null, null, null, null, null, null, null],
+  // 파이프라인 월별 요약 — ★ 집행월 기준
   pipe: {
     2026:[
-      {m:1,propose:4, exec:1,drop:3, in:4, out:0},
-      {m:2,propose:26,exec:0,drop:26,in:6, out:20},
-      {m:3,propose:13,exec:6,drop:7, in:12,out:1},
-      {m:4,propose:6, exec:3,drop:0, in:2, out:4},
-      {m:5,propose:1, exec:1,drop:0, in:0, out:1},
+      {m:1, propose:4,  exec:1, drop:3,  in:4,  out:0},   // 썸트렌드 집행
+      {m:2, propose:20, exec:0, drop:20, in:5,  out:15},  // 집행 없음, 아웃바운드 드롭
+      {m:3, propose:13, exec:6, drop:7,  in:12, out:1},   // 집행월 기준 6건
+      {m:4, propose:9,  exec:3, drop:0,  in:2,  out:4},   // 올리브영·리멤버·얀고애즈 집행완료
+      {m:5, propose:1,  exec:1, drop:0,  in:0,  out:1},   // 세일즈포스AWTK
     ],
     2025:[
-      {m:1,propose:7, exec:2,drop:5, in:7, out:0},
-      {m:2,propose:9, exec:1,drop:8, in:9, out:0},
-      {m:3,propose:11,exec:4,drop:7, in:11,out:0},
-      {m:4,propose:11,exec:3,drop:8, in:11,out:0},
-      {m:5,propose:7, exec:5,drop:2, in:7, out:0},
-      {m:6,propose:12,exec:3,drop:9, in:12,out:0},
+      {m:1, propose:7,  exec:2, drop:5, in:7,  out:0},
+      {m:2, propose:9,  exec:1, drop:8, in:9,  out:0},
+      {m:3, propose:11, exec:4, drop:7, in:11, out:0},
+      {m:4, propose:11, exec:3, drop:8, in:11, out:0},
+      {m:5, propose:7,  exec:5, drop:2, in:7,  out:0},
+      {m:6, propose:12, exec:3, drop:9, in:12, out:0},
     ]
   },
-  // 파이프라인 딜 목록
+  // ★ 딜 목록 — month = 집행월 기준 (제안월 아님!)
   deals:[
-    {year:2026,month:1,tier:'Middle',client:'썸트렌드',cat:'솔루션사',product:'단독',amount:425,status:'집행',detail:'바이브컴퍼니 · 1월 29일'},
-    {year:2026,month:2,tier:'Top',client:'이데일리',cat:'기타',product:'리드전환 pkg',amount:450,status:'집행',detail:'2월 확정 · 3월 12일 집행'},
-    {year:2026,month:2,tier:'Top',client:'틱톡',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'윌비커뮤니케이션 · 3월 9일'},
-    {year:2026,month:3,tier:'Top',client:'데이터라이즈×버즈빌',cat:'솔루션사',product:'스타터 pkg',amount:280,status:'집행',detail:'3월 23일'},
-    {year:2026,month:3,tier:'Top',client:'앱스플라이어',cat:'솔루션사',product:'리드전환 pkg',amount:500,status:'집행',detail:'밴스드 · 3월 24일'},
-    {year:2026,month:3,tier:'Top',client:'Braze',cat:'솔루션사',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'Allison · 3월 31일'},
-    {year:2026,month:4,tier:'Top',client:'올리브영',cat:'브랜드(CPG)',product:'브랜드스토리 pkg',amount:400,status:'집행',detail:'HRPlan · 4월 14일'},
-    {year:2026,month:4,tier:'Top',client:'리멤버',cat:'광고매체사',product:'리드전환 pkg',amount:500,status:'집행',detail:'4월 22일'},
-    {year:2026,month:4,tier:'Top',client:'세일즈포스 AWTK',cat:'솔루션사',product:'리드전환 pkg',amount:450,status:'확정',detail:'UDM · 5월 13일 예정'},
-    {year:2026,month:4,tier:'Top',client:'세일즈포스 AI Agentic',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 웨비나'},
-    {year:2026,month:4,tier:'Top',client:'BytePlus AI day Korea',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'4/23 행사'},
-    {year:2026,month:4,tier:'Top',client:'Flow (AX Festa 2026)',cat:'솔루션사',product:'리드전환 pkg',amount:375,status:'제안중',detail:'6/25 행사'},
-    {year:2026,month:4,tier:'Low',client:'다산북스',cat:'도서/출판사',product:'브랜드스토리 pkg',amount:400,status:'제안중',detail:'제안 4/7'},
-    {year:2026,month:4,tier:'Middle',client:'한국경제인협회 IMI',cat:'기타',product:'리드전환 pkg',amount:375,status:'제안중',detail:'제안 4/6'},
-    {year:2026,month:1,tier:'Top',client:'모비두',cat:'광고매체사',product:'배너',amount:100,status:'드롭',detail:'드롭'},
-    {year:2026,month:2,tier:'Top',client:'마티니 아이오',cat:'솔루션사',product:'단독',amount:400,status:'드롭',detail:'내부 검토 후 미집행'},
-    {year:2026,month:3,tier:'Middle',client:'하나금융그룹',cat:'브랜드(CPG)',product:'리드전환 pkg',amount:500,status:'드롭',detail:'SMC · 드롭'},
+    // ── 1월 집행 ──
+    {year:2026, month:1, tier:'Middle', client:'썸트렌드',          cat:'솔루션사',   product:'단독',            amount:425, status:'집행',  detail:'바이브컴퍼니 · 1월 29일'},
+    // ── 1월 드롭 ──
+    {year:2026, month:1, tier:'Top',    client:'모비두',            cat:'광고매체사', product:'배너',             amount:100, status:'드롭',  detail:'드롭'},
+    // ── 2월 드롭 ──
+    {year:2026, month:2, tier:'Top',    client:'마티니 아이오',      cat:'솔루션사',   product:'단독',            amount:400, status:'드롭',  detail:'내부 검토 후 미집행'},
+    // ── 3월 집행 (집행월 기준 — 제안은 2월이어도 집행이 3월이면 3월) ──
+    {year:2026, month:3, tier:'Top',    client:'틱톡 (윌비커뮤니케이션)',cat:'솔루션사', product:'스타터 pkg',    amount:280, status:'집행',  detail:'2월 제안 → 3월 9일 집행'},
+    {year:2026, month:3, tier:'Top',    client:'이데일리 컨퍼런스',  cat:'기타',       product:'리드전환 pkg',    amount:450, status:'집행',  detail:'2월 제안 → 3월 12일 집행'},
+    {year:2026, month:3, tier:'Top',    client:'DMS 2026',          cat:'기타',       product:'–',               amount:0,   status:'집행',  detail:'3월 17일 집행'},
+    {year:2026, month:3, tier:'Top',    client:'데이터라이즈×버즈빌',cat:'솔루션사',  product:'스타터 pkg',      amount:280, status:'집행',  detail:'3월 23일 집행'},
+    {year:2026, month:3, tier:'Top',    client:'앱스플라이어 (밴스드)',cat:'솔루션사', product:'리드전환 pkg',    amount:500, status:'집행',  detail:'3월 24일 집행'},
+    {year:2026, month:3, tier:'Top',    client:'Braze (Allison)',   cat:'솔루션사',   product:'브랜드스토리 pkg', amount:400, status:'집행',  detail:'3월 31일 집행'},
+    // ── 3월 드롭 ──
+    {year:2026, month:3, tier:'Middle', client:'하나금융그룹',       cat:'브랜드(CPG)', product:'리드전환 pkg',   amount:500, status:'드롭',  detail:'SMC · 드롭'},
+    // ── 4월 집행 ──
+    {year:2026, month:4, tier:'Top',    client:'올리브영 (HRPlan)', cat:'브랜드(CPG)', product:'브랜드스토리 pkg',amount:400, status:'집행',  detail:'HRPlan · 4월 14일 집행'},
+    {year:2026, month:4, tier:'Top',    client:'리멤버',            cat:'광고매체사', product:'리드전환 pkg',    amount:500, status:'집행',  detail:'4월 22일 집행'},
+    {year:2026, month:4, tier:'Top',    client:'얀고애즈',          cat:'솔루션사',   product:'리드전환 pkg',    amount:500, status:'집행',  detail:'4월 집행'},
+    // ── 4월 제안 중 ──
+    {year:2026, month:4, tier:'Top',    client:'세일즈포스 AI Agentic',cat:'솔루션사', product:'리드전환 pkg',   amount:375, status:'제안중', detail:'4/23 웨비나'},
+    {year:2026, month:4, tier:'Top',    client:'BytePlus AI day Korea',cat:'솔루션사', product:'리드전환 pkg',  amount:375, status:'제안중', detail:'4/23 행사'},
+    {year:2026, month:4, tier:'Top',    client:'Flow (AX Festa 2026)',cat:'솔루션사',  product:'리드전환 pkg',  amount:375, status:'제안중', detail:'6/25 행사'},
+    {year:2026, month:4, tier:'Low',    client:'다산북스',          cat:'도서/출판사', product:'브랜드스토리 pkg',amount:400, status:'제안중', detail:'제안 4/7'},
+    {year:2026, month:4, tier:'Middle', client:'한국경제인협회 IMI', cat:'기타',       product:'리드전환 pkg',   amount:375, status:'제안중', detail:'제안 4/6'},
+    // ── 5월 집행 예정 ──
+    {year:2026, month:5, tier:'Top',    client:'세일즈포스 AWTK',   cat:'솔루션사',   product:'리드전환 pkg',    amount:450, status:'확정',  detail:'UDM · 5월 13일 집행 예정'},
   ]
 };
 
@@ -1643,9 +1657,9 @@ function updateRevenueChart(year, mVal, months) {
 }
 
 function updateDetailTable(year, mVal, months) {
-  const rev26 = year===2026 ? getData26() : REV25;  // ★ 실시간
-  const rev25 = REV25;
-  const pd_all = getPipeData(year);  // ★ 실시간
+  const rev26  = year===2026 ? getData26() : REV25;
+  const rev25  = REV25;
+  const pd_all = getPipeData(year);
   let rows='', totalRev=0, totalPrev=0, totalTgt=0, totalProp=0, totalExec=0;
 
   months.forEach(m=>{
@@ -1661,6 +1675,7 @@ function updateDetailTable(year, mVal, months) {
     totalPrev+=prv; if(tgt) totalTgt+=tgt;
     totalProp+=pd.propose; totalExec+=pd.exec;
 
+    // ── 월 요약 행 ──
     rows+=`<tr>
       <td class="bold">${m}월</td><td>${pd.propose}건</td><td>${pd.exec}건</td>
       <td class="${cvr>=30?'up':'flat'}">${cvr}%</td>
@@ -1669,8 +1684,25 @@ function updateDetailTable(year, mVal, months) {
       <td>${yoyBadge(yoy)}</td>
       <td style="color:var(--text3);">${tgt?tgt.toLocaleString()+'만':'—'}</td>
       <td>${rateBadge(rate)}</td></tr>`;
+
+    // ── ★ 건별 상세 내역 (집행/확정 건만) ──
+    const monthDeals = getDeals().filter(d=>
+      d.year===year && d.month===m && (d.status==='집행'||d.status==='확정')
+    );
+    monthDeals.forEach(d=>{
+      const statColor = d.status==='집행' ? 'var(--green)' : 'var(--accent)';
+      rows+=`<tr style="background:var(--bg3);">
+        <td style="padding-left:24px;color:var(--text3);font-size:12px;">└ ${d.detail||''}</td>
+        <td colspan="2" style="font-size:12px;color:var(--text2);">${d.client}</td>
+        <td style="font-size:12px;color:var(--text2);">${d.cat}</td>
+        <td style="font-size:12px;font-weight:700;color:${statColor};">${d.amount?d.amount.toLocaleString()+'만':'–'}</td>
+        <td style="font-size:12px;color:var(--text3);">${d.product}</td>
+        <td colspan="3" style="font-size:11px;"><span style="background:${d.status==='집행'?'var(--green-bg)':'var(--accent-glow)'};color:${statColor};padding:2px 7px;border-radius:4px;font-weight:600;">${d.status}</span></td>
+      </tr>`;
+    });
   });
 
+  // ── 합계 행 ──
   const totalCvr = totalProp ? Math.round(totalExec/totalProp*100) : 0;
   const totalYoy = pct(totalRev, totalPrev);
   const totalRate= totalTgt ? Math.round(totalRev/totalTgt*100) : null;
@@ -1711,8 +1743,13 @@ function applyPipelineFilter() {
   const tOut    = pd.reduce((s,d)=>s+d.out,0);
   const confAmt = confirmed.reduce((s,d)=>s+(d.amount||0),0);
   const actAmt  = active.reduce((s,d)=>s+(d.amount||0),0);
-  const rev26   = getData26();
-  const sumRev  = months.reduce((s,m)=>s+(rev26[m-1]||0),0);
+  // ★ 집행월 기준: rev26 배열(시트 동기화 시) 우선, 없으면 딜 집행금액 합산
+  const rev26arr = getData26();
+  const sumRevArr = months.reduce((s,m)=>s+(rev26arr[m-1]||0),0);
+  const execAmt   = confirmed.filter(d=>d.status==='집행').reduce((s,d)=>s+(d.amount||0),0);
+  const fixedAmt  = confirmed.filter(d=>d.status==='확정').reduce((s,d)=>s+(d.amount||0),0);
+  // 시트 연결 시 rev26arr 사용, 미연결 시 딜 집행금액 합산 사용
+  const displayRev = LIVE.connected ? sumRevArr : execAmt;
 
   document.getElementById('pKpi1').innerHTML = tProp+'<span class="unit">건</span>';
   document.getElementById('pKpi1sub').textContent = `in ${tIn} / out ${tOut}`;
@@ -1720,8 +1757,8 @@ function applyPipelineFilter() {
   document.getElementById('pKpi2sub').textContent = `드롭률 ${tProp?Math.round(tDrop/tProp*100):0}%`;
   document.getElementById('pKpi3').innerHTML = tExec+'<span class="unit">건</span>';
   document.getElementById('pKpi3sub').textContent = `전환율 ${tProp?Math.round(tExec/tProp*100):0}%`;
-  document.getElementById('pKpi4').innerHTML = sumRev.toLocaleString()+'<span class="unit">만</span>';
-  document.getElementById('pKpi4sub').textContent = `확정 ${confAmt.toLocaleString()}만`;
+  document.getElementById('pKpi4').innerHTML = displayRev.toLocaleString()+'<span class="unit">만</span>';
+  document.getElementById('pKpi4sub').textContent = `집행완료 ${execAmt.toLocaleString()}만 · 확정 ${fixedAmt.toLocaleString()}만`;
 
   const tierB = t=>t==='Top'?'<span class="tier-top">TOP</span>':t==='Middle'?'<span class="tier-mid">MID</span>':'<span class="tier-low">LOW</span>';
   const statB = s=>s==='집행'?'<span class="badge green">집행완료</span>':s==='확정'?'<span class="badge blue">확정</span>':s==='제안중'?'<span class="badge amber">제안중</span>':'<span class="badge gray">드롭</span>';
@@ -1740,7 +1777,7 @@ function applyPipelineFilter() {
     ? `<div style="margin:16px 0 12px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;">▸ 드롭 (${dropped.length}건)</div>${renderDeals(dropped)}`:'';
 
   document.getElementById('pipelineSummary').innerHTML =
-    `<strong>📊 ${labelText(year,mVal)} 요약:</strong> 집행/확정 ${confAmt.toLocaleString()}만 · 제안중 전환 시 최대 ${(confAmt+actAmt).toLocaleString()}만 가능`;
+    `<strong>📊 ${labelText(year,mVal)} 요약:</strong> 집행완료 ${execAmt.toLocaleString()}만 · 확정 ${fixedAmt.toLocaleString()}만 · 제안중 전환 시 추가 최대 ${actAmt.toLocaleString()}만 가능`;
 
   // 파이프라인 차트
   const safeL = pd.length ? pd.map(d=>d.m+'월') : ['데이터 없음'];

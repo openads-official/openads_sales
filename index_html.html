@@ -1167,15 +1167,20 @@ function getData(sheetName) {
     return rows;
   }
 
-  // 광고효율
+  // 광고효율 — 헤더 1행, 데이터 4행(index 3)부터
+  // 컬럼: 광고기간 / 상품 유형 / 광고주 / 대행사 / 소재 / 컨텐츠(제목) /
+  //       매출(만원) / 발송수 / 오픈수 / 오픈율 / 오픈수(중복포함) / 오픈율(중복포함) /
+  //       클릭수 / CTR / 수신거부
   if (sheetName === 'efficiency') {
-    const header = raw[0];
+    const header = raw[0].map(h => String(h).trim());
     const rows = [];
     for (let i = 3; i < raw.length; i++) {
       const row = raw[i];
-      if (!row[0]) continue;
+      if (!row[0] || row[0] === '') continue;
       const obj = {};
-      header.forEach((h, j) => { obj[h] = row[j]; });
+      header.forEach((h, j) => {
+        obj[h] = (row[j] instanceof Date) ? row[j].toISOString() : row[j];
+      });
       rows.push(obj);
     }
     return rows;
@@ -1636,24 +1641,41 @@ function getPipeData(year) {
 function getDeals() { return LIVE.deals || FALLBACK.deals; }
 function getEffData() { return LIVE.eff || EFF_DATA; }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 광고효율 시트 파싱
-// 시트 컬럼: 연도, 월, 광고주, 상품유형, 매출(만원), 발송수, 오픈수, 클릭수, CTR(%)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 컬럼: 광고기간 / 상품 유형 / 광고주 / 대행사 / 소재 / 컨텐츠(제목) /
+//       매출(만원) / 발송수 / 오픈수 / 오픈율 / 오픈수(중복포함) / 오픈율(중복포함) /
+//       클릭수 / CTR / 수신거부
 function parseEfficiencySheet(rows) {
   if (!rows || !rows.length) return null;
   return rows.map(r => {
-    const year   = parseInt(r['연도'] || r['year']   || r['Year'])  || null;
-    const month  = parseInt(r['월']   || r['month']  || r['Month']) || null;
-    const client = String(r['광고주'] || r['client'] || r['광고주명'] || '').trim();
-    const product= String(r['상품유형']|| r['product']|| r['상품']   || '').trim();
-    const amount = parseFloat(r['매출(만원)'] || r['매출'] || r['amount'] || 0) || 0;
-    const send   = parseFloat(r['발송수'] || r['send']  || r['발송']) || null;
-    const open   = parseFloat(r['오픈수'] || r['open']  || r['오픈']) || null;
-    const click  = parseFloat(r['클릭수'] || r['click'] || r['클릭']) || null;
-    const ctr    = parseFloat(r['CTR(%)'] || r['CTR']   || r['ctr']  || r['클릭율']) || null;
-    if (!year || !month || !client) return null;
-    return { year, month, client, product, amount, send, open, click, ctr };
+    // 광고기간에서 연도/월 추출 (Date ISO or "2026-01" or "2026년 1월")
+    const rawPeriod = String(r['광고기간'] || '');
+    let year = null, month = null;
+    if (rawPeriod) {
+      try {
+        const d = new Date(rawPeriod);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+          year = d.getFullYear(); month = d.getMonth() + 1;
+        }
+      } catch(e) {}
+      if (!year) {
+        const m = rawPeriod.match(/(\d{4})[^\d](\d{1,2})/);
+        if (m) { year = parseInt(m[1]); month = parseInt(m[2]); }
+      }
+    }
+    const client   = String(r['광고주']       || '').trim();
+    const product  = String(r['상품 유형']    || '').trim();
+    const amount   = parseFloat(r['매출(만원)'])      || 0;
+    const send     = parseFloat(r['발송수'])          || null;
+    const open     = parseFloat(r['오픈수'])          || null;
+    const click    = parseFloat(r['클릭수'])          || null;
+    const ctr      = parseFloat(r['CTR'])             || null;
+    const openRate = parseFloat(r['오픈율'])          || null;
+    const openDup  = parseFloat(r['오픈수(중복포함)'])|| null;
+    const agency   = String(r['대행사']       || '').trim();
+    const title    = String(r['컨텐츠(제목)'] || '').trim();
+    if (!client) return null;
+    return { year, month, client, product, amount, send, open, click, ctr, openRate, openDup, agency, title };
   }).filter(Boolean);
 }
 
@@ -1964,48 +1986,56 @@ function applyEffFilter() {
   document.getElementById('effTableTitle').textContent = `집행 광고 성과 상세 (${yLbl} ${mLbl})`;
 
   // KPI 계산
-  const withOpen  = filtered.filter(d => d.open  != null && d.send != null);
-  const withClick = filtered.filter(d => d.click != null && d.open != null);
-  const avgOpenRate = withOpen.length  ? (withOpen.reduce((s,d)=>s+(d.open/d.send*100),0)/withOpen.length).toFixed(1)  : null;
-  const avgCtr      = withClick.length ? (withClick.reduce((s,d)=>s+d.ctr,0)/withClick.length).toFixed(2) : null;
-  const totalAmt    = filtered.reduce((s,d)=>s+d.amount,0);
+  // KPI — 오픈율은 시트 값 우선, 없으면 직접 계산
+  const withOpenRate = filtered.filter(d => d.openRate != null || (d.open != null && d.send != null));
+  const withCtr      = filtered.filter(d => d.ctr != null);
+  const totalAmt     = filtered.reduce((s,d)=>s+d.amount, 0);
+  const avgOpenRate  = withOpenRate.length
+    ? (withOpenRate.reduce((s,d) => s + (d.openRate != null ? d.openRate : d.open/d.send*100), 0) / withOpenRate.length).toFixed(1)
+    : null;
+  const avgCtr = withCtr.length
+    ? (withCtr.reduce((s,d)=>s+d.ctr,0)/withCtr.length).toFixed(2)
+    : null;
 
-  document.getElementById('effKpi1').innerHTML = (avgOpenRate ? avgOpenRate+'<span class="unit">%</span>' : '—');
-  document.getElementById('effKpi1sub').textContent = withOpen.length + '건 평균';
-  document.getElementById('effKpi2').innerHTML = (avgCtr ? avgCtr+'<span class="unit">%</span>' : '—');
-  document.getElementById('effKpi2sub').textContent = withClick.length + '건 평균';
+  document.getElementById('effKpi1').innerHTML = avgOpenRate ? avgOpenRate+'<span class="unit">%</span>' : '—';
+  document.getElementById('effKpi1sub').textContent = withOpenRate.length + '건 평균';
+  document.getElementById('effKpi2').innerHTML = avgCtr ? avgCtr+'<span class="unit">%</span>' : '—';
+  document.getElementById('effKpi2sub').textContent = withCtr.length + '건 평균';
   document.getElementById('effKpi3').innerHTML = filtered.length + '<span class="unit">건</span>';
-  document.getElementById('effKpi3sub').textContent = yearVal==='2026' ? '26년 데이터 누적 중' : '해당 기간';
+  document.getElementById('effKpi3sub').textContent = '해당 기간';
   document.getElementById('effKpi4').innerHTML = totalAmt.toLocaleString() + '<span class="unit">만</span>';
   document.getElementById('effKpi4sub').textContent = '집행 합계';
 
   // 테이블 렌더링
   const pTypeBadge = p => {
     const m = {'스토리형':'blue','단독':'purple','콘텐츠배너형':'teal','리드전환 pkg':'green','스타터 pkg':'amber','브랜드스토리 pkg':'blue'};
-    return `<span class="badge ${m[p]||'gray'}">${p}</span>`;
+    return p ? `<span class="badge ${m[p]||'gray'}">${p}</span>` : '—';
   };
   const openBadge = r => {
-    if (r==null) return '<span class="flat">—</span>';
-    return r >= 22 ? `<span class="badge green">${r.toFixed(1)}%</span>` : `<span class="badge amber">${r.toFixed(1)}%</span>`;
+    if (r==null) return '<span style="color:var(--text3);">—</span>';
+    const v = parseFloat(r);
+    return v >= 22 ? `<span class="badge green">${v.toFixed(1)}%</span>` : `<span class="badge amber">${v.toFixed(1)}%</span>`;
   };
   const ctrBadge = r => {
-    if (r==null) return '<span class="flat">—</span>';
-    return r >= 3 ? `<span class="badge green">${r}%</span>` : r >= 1.5 ? `<span class="badge amber">${r}%</span>` : `<span class="badge gray">${r}%</span>`;
+    if (r==null) return '<span style="color:var(--text3);">—</span>';
+    const v = parseFloat(r);
+    return v >= 3 ? `<span class="badge green">${v}%</span>` : v >= 1.5 ? `<span class="badge amber">${v}%</span>` : `<span class="badge gray">${v}%</span>`;
   };
 
   const rows = filtered.length === 0
     ? `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px;">해당 기간 집행 데이터가 없습니다</td></tr>`
     : filtered.map(d => {
-        const openRate = (d.open && d.send) ? (d.open/d.send*100) : null;
+        const dispOpenRate = d.openRate != null ? d.openRate : (d.open && d.send ? (d.open/d.send*100) : null);
+        const period = (d.year && d.month) ? `${d.year}년 ${d.month}월` : (d.title || '—');
         return `<tr>
-          <td class="dim">${d.year}년 ${d.month}월</td>
-          <td style="text-align:left;font-weight:700;">${d.client}</td>
+          <td class="dim">${period}</td>
+          <td style="text-align:left;font-weight:700;">${d.client}${d.agency ? '<span style="font-size:11px;color:var(--text3);font-weight:400;"> ('+d.agency+')</span>' : ''}</td>
           <td style="text-align:left;">${pTypeBadge(d.product)}</td>
-          <td class="accent">${d.amount.toLocaleString()}만</td>
-          <td>${d.send ? d.send.toLocaleString() : '<span class="flat">—</span>'}</td>
-          <td>${d.open ? d.open.toLocaleString() : '<span class="flat">—</span>'}</td>
-          <td>${openBadge(openRate)}</td>
-          <td>${d.click != null ? d.click.toLocaleString() : '<span class="flat">—</span>'}</td>
+          <td class="accent">${d.amount ? d.amount.toLocaleString()+'만' : '—'}</td>
+          <td>${d.send != null ? d.send.toLocaleString() : '<span style="color:var(--text3);">—</span>'}</td>
+          <td>${d.open != null ? d.open.toLocaleString() : '<span style="color:var(--text3);">—</span>'}</td>
+          <td>${openBadge(dispOpenRate)}</td>
+          <td>${d.click != null ? d.click.toLocaleString() : '<span style="color:var(--text3);">—</span>'}</td>
           <td>${ctrBadge(d.ctr)}</td>
         </tr>`;
       }).join('');

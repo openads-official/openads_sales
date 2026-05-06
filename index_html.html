@@ -1622,6 +1622,7 @@ let LIVE = {
   rev26: null,      // 시트에서 읽은 26년 월별 매출 배열
   pipe: null,       // 시트에서 읽은 파이프라인 요약
   deals: null,      // 시트에서 읽은 딜 목록
+  eff: null,        // 시트에서 읽은 광고효율 데이터
   lastSync: null,
   connected: false
 };
@@ -1633,6 +1634,28 @@ function getPipeData(year) {
   return FALLBACK.pipe[year] || [];
 }
 function getDeals() { return LIVE.deals || FALLBACK.deals; }
+function getEffData() { return LIVE.eff || EFF_DATA; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 광고효율 시트 파싱
+// 시트 컬럼: 연도, 월, 광고주, 상품유형, 매출(만원), 발송수, 오픈수, 클릭수, CTR(%)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function parseEfficiencySheet(rows) {
+  if (!rows || !rows.length) return null;
+  return rows.map(r => {
+    const year   = parseInt(r['연도'] || r['year']   || r['Year'])  || null;
+    const month  = parseInt(r['월']   || r['month']  || r['Month']) || null;
+    const client = String(r['광고주'] || r['client'] || r['광고주명'] || '').trim();
+    const product= String(r['상품유형']|| r['product']|| r['상품']   || '').trim();
+    const amount = parseFloat(r['매출(만원)'] || r['매출'] || r['amount'] || 0) || 0;
+    const send   = parseFloat(r['발송수'] || r['send']  || r['발송']) || null;
+    const open   = parseFloat(r['오픈수'] || r['open']  || r['오픈']) || null;
+    const click  = parseFloat(r['클릭수'] || r['click'] || r['클릭']) || null;
+    const ctr    = parseFloat(r['CTR(%)'] || r['CTR']   || r['ctr']  || r['클릭율']) || null;
+    if (!year || !month || !client) return null;
+    return { year, month, client, product, amount, send, open, click, ctr };
+  }).filter(Boolean);
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 구글 시트 fetch (Apps Script 웹앱)
@@ -1781,13 +1804,14 @@ async function syncAll() {
   setStatus('statusPipeline', '<span style="color:var(--amber);">🔄 동기화 중...</span>');
   setStatus('statusEfficiency','<span style="color:var(--amber);">🔄 동기화 중...</span>');
 
-  // 병렬 fetch
-  const [revRows, pipeRows] = await Promise.all([
+  // 병렬 fetch — efficiency 포함
+  const [revRows, pipeRows, effRows] = await Promise.all([
     fetchFromSheet('revenue'),
-    fetchFromSheet('pipeline')
+    fetchFromSheet('pipeline'),
+    fetchFromSheet('efficiency')
   ]);
 
-  let revOk = false, pipeOk = false;
+  let revOk = false, pipeOk = false, effOk = false;
 
   if (revRows) {
     const parsed = parseRevenueSheet(revRows);
@@ -1797,13 +1821,17 @@ async function syncAll() {
     const parsed = parsePipelineSheet(pipeRows);
     if (parsed) { LIVE.pipe = parsed.pipe; LIVE.deals = parsed.deals; pipeOk = true; }
   }
+  if (effRows && effRows.length) {
+    const parsed = parseEfficiencySheet(effRows);
+    if (parsed && parsed.length) { LIVE.eff = parsed; effOk = true; }
+  }
 
   LIVE.connected = revOk || pipeOk;
   LIVE.lastSync = new Date();
 
-  setStatus('statusRevenue',  revOk  ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
-  setStatus('statusPipeline', pipeOk ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
-  setStatus('statusEfficiency','<span style="color:var(--text3);">— (수동 입력)</span>');
+  setStatus('statusRevenue',    revOk  ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
+  setStatus('statusPipeline',   pipeOk ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패</span>');
+  setStatus('statusEfficiency', effOk  ? '<span style="color:var(--green);">✅ 완료</span>' : '<span style="color:var(--red);">❌ 실패 (시트 컬럼명 확인)</span>');
 
   // 상태 업데이트
   const now = LIVE.lastSync;
@@ -1812,7 +1840,7 @@ async function syncAll() {
   if(syncInfo) syncInfo.textContent = `마지막 동기화: ${timeStr}`;
   const connStatus = document.getElementById('connectStatus');
   if(connStatus) connStatus.innerHTML = LIVE.connected
-    ? `<span style="color:var(--green);">✅ 동기화 완료 · ${timeStr} · 매출 ${revOk?'✓':'✗'} 파이프라인 ${pipeOk?'✓':'✗'}</span>`
+    ? `<span style="color:var(--green);">✅ 동기화 완료 · ${timeStr} · 매출 ${revOk?'✓':'✗'} 파이프라인 ${pipeOk?'✓':'✗'} 효율 ${effOk?'✓':'✗'}</span>`
     : `<span style="color:var(--red);">❌ 동기화 실패 — URL 확인 필요</span>`;
 
   // 사이드바 복원
@@ -1822,9 +1850,10 @@ async function syncAll() {
   // 연결 배너 업데이트
   updateSyncBanner();
 
-  // 대시보드 & 파이프라인 새로고침
+  // 대시보드 & 파이프라인 & 광고효율 새로고침
   applyFilter();
   applyPipelineFilter();
+  applyEffFilter();
 }
 
 function connectWebApp() {
@@ -1919,8 +1948,8 @@ function applyEffFilter() {
   const monthVal = document.getElementById('effMonth').value;
   const months   = getMonthRange(monthVal);
 
-  // 필터링
-  let filtered = EFF_DATA;
+  // 실시간 데이터 우선, 없으면 폴백
+  let filtered = getEffData();
   if (yearVal !== 'all') {
     filtered = filtered.filter(d => d.year === parseInt(yearVal));
   }
@@ -1987,7 +2016,9 @@ function applyEffFilter() {
   const topCtr = filtered.filter(d=>d.ctr!=null).sort((a,b)=>b.ctr-a.ctr)[0];
   document.getElementById('effInsight').innerHTML = topCtr
     ? `<strong>💡 ${yLbl} ${mLbl} 인사이트:</strong> 가장 높은 CTR은 <strong>${topCtr.client} (${topCtr.ctr}% · ${topCtr.product})</strong>. 단독·리드전환 pkg 광고의 클릭 효율이 스토리형 대비 우수한 경향.`
-    : `<strong>💡 인사이트:</strong> 26년 광고 효율 데이터는 시트 동기화 후 자동 반영됩니다.`;
+    : LIVE.eff
+      ? `<strong>💡 인사이트:</strong> 해당 기간 광고 효율 데이터가 없습니다. 시트에서 데이터를 확인해 주세요.`
+      : `<strong>💡 인사이트:</strong> 26년 광고 효율 데이터는 시트 동기화 후 자동 반영됩니다. 데이터 관리 탭에서 Apps Script 웹앱 URL을 연결해 주세요.`;
 }
 
 

@@ -1176,10 +1176,16 @@ function getData(sheetName) {
     const rows = [];
     for (let i = 3; i < raw.length; i++) {
       const row = raw[i];
-      if (!row[0] || row[0] === '') continue;
+      // 광고주(3번째 컬럼, index 2)가 없으면 빈 행으로 skip
+      if (!row[2] || String(row[2]).trim() === '') continue;
       const obj = {};
       header.forEach((h, j) => {
-        obj[h] = (row[j] instanceof Date) ? row[j].toISOString() : row[j];
+        // Date 객체는 ISO 문자열로 변환, 숫자는 그대로
+        if (row[j] instanceof Date) {
+          obj[h] = row[j].toISOString();
+        } else {
+          obj[h] = row[j];
+        }
       });
       rows.push(obj);
     }
@@ -1648,34 +1654,36 @@ function getEffData() { return LIVE.eff || EFF_DATA; }
 function parseEfficiencySheet(rows) {
   if (!rows || !rows.length) return null;
   return rows.map(r => {
-    // 광고기간에서 연도/월 추출 (Date ISO or "2026-01" or "2026년 1월")
+    // 광고기간: ISO 문자열("2024-01-01T15:00:00.000Z") or 일반 문자열
     const rawPeriod = String(r['광고기간'] || '');
     let year = null, month = null;
     if (rawPeriod) {
       try {
         const d = new Date(rawPeriod);
         if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
-          year = d.getFullYear(); month = d.getMonth() + 1;
+          // UTC 기준으로 파싱 (한국 시간 오차 방지)
+          year  = d.getUTCFullYear();
+          month = d.getUTCMonth() + 1;
         }
       } catch(e) {}
-      if (!year) {
-        const m = rawPeriod.match(/(\d{4})[^\d](\d{1,2})/);
-        if (m) { year = parseInt(m[1]); month = parseInt(m[2]); }
-      }
     }
     const client   = String(r['광고주']       || '').trim();
     const product  = String(r['상품 유형']    || '').trim();
-    const amount   = parseFloat(r['매출(만원)'])      || 0;
-    const send     = parseFloat(r['발송수'])          || null;
-    const open     = parseFloat(r['오픈수'])          || null;
-    const click    = parseFloat(r['클릭수'])          || null;
-    const ctr      = parseFloat(r['CTR'])             || null;
-    const openRate = parseFloat(r['오픈율'])          || null;
-    const openDup  = parseFloat(r['오픈수(중복포함)'])|| null;
-    const agency   = String(r['대행사']       || '').trim();
-    const title    = String(r['컨텐츠(제목)'] || '').trim();
+    const amount   = parseFloat(r['매출(만원)'])       || 0;
+    const send     = parseFloat(r['발송수'])           || null;
+    const open     = parseFloat(r['오픈수'])           || null;
+    const click    = parseFloat(r['클릭수'])           || null;
+    const agency   = String(r['대행사']        || '').trim();
+    const title    = String(r['컨텐츠(제목)']  || '').trim();
+
+    // 오픈율·CTR: 시트에 소수 비율(0.23...)로 저장 → ×100 해서 퍼센트로 변환
+    const rawOpenRate = parseFloat(r['오픈율']);
+    const rawCtr      = parseFloat(r['CTR']);
+    const openRate = !isNaN(rawOpenRate) ? (rawOpenRate < 1 ? rawOpenRate * 100 : rawOpenRate) : null;
+    const ctr      = !isNaN(rawCtr)      ? (rawCtr < 1      ? parseFloat((rawCtr * 100).toFixed(2))      : rawCtr)      : null;
+
     if (!client) return null;
-    return { year, month, client, product, amount, send, open, click, ctr, openRate, openDup, agency, title };
+    return { year, month, client, product, amount, send, open, click, ctr, openRate, agency, title };
   }).filter(Boolean);
 }
 

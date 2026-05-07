@@ -721,8 +721,8 @@ body {
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
         <span style="font-size:12px;font-weight:700;color:var(--text3);">기간 선택</span>
         <select id="effYear" onchange="applyEffFilter()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;">
-          <option value="all">전체 (24~26년)</option>
-          <option value="2026" selected>2026년</option>
+          <option value="all" selected>전체 (24~26년)</option>
+          <option value="2026">2026년</option>
           <option value="2025">2025년</option>
           <option value="2024">2024년</option>
         </select>
@@ -1949,28 +1949,28 @@ function rateBadge(r){
 // 광고 효율 데이터 (광고효율 시트 기반)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const EFF_DATA = [
-  // 2026년
-  {year:2026,month:1, client:'썸트렌드',       product:'단독',        amount:425, send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:3, client:'틱톡 (윌비)',     product:'스타터 pkg',  amount:280, send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:3, client:'이데일리',        product:'리드전환 pkg',amount:450, send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:3, client:'데이터라이즈×버즈빌',product:'스타터 pkg',amount:280,send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:3, client:'앱스플라이어',    product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:3, client:'Braze',           product:'브랜드스토리 pkg',amount:400,send:null,open:null,click:null,ctr:null},
-  {year:2026,month:4, client:'올리브영',        product:'브랜드스토리 pkg',amount:400,send:null,open:null,click:null,ctr:null},
-  {year:2026,month:4, client:'리멤버',          product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
-  {year:2026,month:4, client:'얀고애즈',        product:'리드전환 pkg',amount:500, send:null,  open:null,  click:null,  ctr:null},
+  // 2026년 — 동기화 전 기본 표시용 (효율 수치는 동기화 후 실제값으로 대체)
+  {year:2026,month:1, client:'썸트렌드',            product:'단독',            amount:425, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:3, client:'틱톡 (윌비커뮤니케이션)', product:'스타터 pkg',  amount:280, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:3, client:'이데일리 컨퍼런스',   product:'리드전환 pkg',    amount:450, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:3, client:'데이터라이즈×버즈빌', product:'스타터 pkg',      amount:280, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:3, client:'앱스플라이어 (밴스드)',product:'리드전환 pkg',    amount:500, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:3, client:'Braze (Allison)',     product:'브랜드스토리 pkg', amount:400, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:4, client:'올리브영 (HRPlan)',   product:'브랜드스토리 pkg', amount:400, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:4, client:'리멤버',              product:'리드전환 pkg',    amount:500, send:null, open:null, click:null, ctr:null,  openRate:null},
+  {year:2026,month:4, client:'얀고애즈',            product:'리드전환 pkg',    amount:500, send:null, open:null, click:null, ctr:null,  openRate:null},
   // 2025년
-  {year:2025,month:1, client:'세일즈포스',      product:'스토리형',    amount:400, send:52737, open:11732, click:219,   ctr:1.87},
-  {year:2025,month:2, client:'어도비',          product:'단독',        amount:400, send:51735, open:11490, click:608,   ctr:5.29},
-  {year:2025,month:3, client:'소니 픽처스',     product:'스토리형',    amount:350, send:52000, open:11500, click:180,   ctr:1.57},
+  {year:2025,month:1, client:'세일즈포스',          product:'스토리형',        amount:400, send:52737, open:11732, click:219,  ctr:1.87, openRate:22.2},
+  {year:2025,month:2, client:'어도비',              product:'단독',            amount:400, send:51735, open:11490, click:608,  ctr:5.29, openRate:22.2},
+  {year:2025,month:3, client:'소니 픽처스',         product:'스토리형',        amount:350, send:52000, open:11500, click:180,  ctr:1.57, openRate:22.1},
   // 2024년
-  {year:2024,month:1, client:'드롭탑(필메이트)', product:'스토리형',   amount:300, send:50570, open:11707, click:178,   ctr:1.52},
-  {year:2024,month:1, client:'틱톡포비즈니스',  product:'단독',        amount:400, send:50678, open:11693, click:922,   ctr:7.89},
-  {year:2024,month:2, client:'메디힐',          product:'콘텐츠배너형',amount:250, send:180416,open:null,  click:514,   ctr:0.29},
-  {year:2024,month:2, client:'효성',            product:'단독',        amount:350, send:51586, open:11631, click:293,   ctr:2.52},
-  {year:2024,month:2, client:'어도비',          product:'단독',        amount:400, send:51735, open:11490, click:608,   ctr:5.29},
-  {year:2024,month:3, client:'츄파춥스',        product:'스토리형',    amount:300, send:52347, open:12024, click:167,   ctr:1.39},
-  {year:2024,month:3, client:'세일즈포스',      product:'스토리형',    amount:350, send:52737, open:11732, click:219,   ctr:1.87},
+  {year:2024,month:1, client:'드롭탑(필메이트)',    product:'스토리형',        amount:300, send:50471, open:11707, click:178,  ctr:1.52, openRate:23.2},
+  {year:2024,month:1, client:'틱톡포비즈니스',      product:'단독',            amount:400, send:50678, open:11693, click:922,  ctr:7.89, openRate:23.1},
+  {year:2024,month:2, client:'메디힐',              product:'콘텐츠배너형',    amount:250, send:180416,open:null,  click:514,  ctr:0.29, openRate:null},
+  {year:2024,month:2, client:'효성',               product:'단독',            amount:350, send:51586, open:11631, click:293,  ctr:2.52, openRate:22.5},
+  {year:2024,month:2, client:'어도비',              product:'단독',            amount:400, send:51735, open:11490, click:608,  ctr:5.29, openRate:22.2},
+  {year:2024,month:3, client:'츄파춥스',            product:'스토리형',        amount:300, send:52347, open:12024, click:167,  ctr:1.39, openRate:22.9},
+  {year:2024,month:3, client:'세일즈포스',          product:'스토리형',        amount:350, send:52737, open:11732, click:219,  ctr:1.87, openRate:22.2},
 ];
 
 function applyEffFilter() {
@@ -2423,6 +2423,7 @@ window.addEventListener('load', async ()=>{
       await syncAll();
       applyFilter();
       applyPipelineFilter();
+      applyEffFilter();
     }, 500);
   }
 });

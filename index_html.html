@@ -1654,33 +1654,39 @@ function getEffData() { return LIVE.eff || EFF_DATA; }
 function parseEfficiencySheet(rows) {
   if (!rows || !rows.length) return null;
   return rows.map(r => {
-    // 광고기간: ISO 문자열("2024-01-01T15:00:00.000Z") or 일반 문자열
+    // 광고기간: ISO 문자열("2024-01-01T15:00:00.000Z") → UTC 기준 연도/월 추출
     const rawPeriod = String(r['광고기간'] || '');
     let year = null, month = null;
     if (rawPeriod) {
       try {
         const d = new Date(rawPeriod);
         if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
-          // UTC 기준으로 파싱 (한국 시간 오차 방지)
           year  = d.getUTCFullYear();
           month = d.getUTCMonth() + 1;
         }
       } catch(e) {}
     }
-    const client   = String(r['광고주']       || '').trim();
-    const product  = String(r['상품 유형']    || '').trim();
-    const amount   = parseFloat(r['매출(만원)'])       || 0;
-    const send     = parseFloat(r['발송수'])           || null;
-    const open     = parseFloat(r['오픈수'])           || null;
-    const click    = parseFloat(r['클릭수'])           || null;
-    const agency   = String(r['대행사']        || '').trim();
-    const title    = String(r['컨텐츠(제목)']  || '').trim();
 
-    // 오픈율·CTR: 시트에 소수 비율(0.23...)로 저장 → ×100 해서 퍼센트로 변환
-    const rawOpenRate = parseFloat(r['오픈율']);
-    const rawCtr      = parseFloat(r['CTR']);
-    const openRate = !isNaN(rawOpenRate) ? (rawOpenRate < 1 ? rawOpenRate * 100 : rawOpenRate) : null;
-    const ctr      = !isNaN(rawCtr)      ? (rawCtr < 1      ? parseFloat((rawCtr * 100).toFixed(2))      : rawCtr)      : null;
+    const client  = String(r['광고주']      || '').trim();
+    const product = String(r['상품 유형']   || '').trim();
+    const agency  = String(r['대행사']      || '').trim();
+    const title   = String(r['컨텐츠(제목)']|| '').trim();
+
+    // 매출: "-", "티켓 바터" 등 문자열이 올 수 있으므로 안전하게 처리
+    const rawAmt = r['매출(만원)'];
+    const amount = (rawAmt !== '' && rawAmt !== '-' && rawAmt !== null)
+      ? (parseFloat(rawAmt) || 0) : 0;
+
+    // 발송수·오픈수·클릭수: 빈 문자열("") 올 수 있음
+    const send  = (r['발송수']  !== '' && r['발송수']  != null) ? parseFloat(r['발송수'])  || null : null;
+    const open  = (r['오픈수']  !== '' && r['오픈수']  != null) ? parseFloat(r['오픈수'])  || null : null;
+    const click = (r['클릭수']  !== '' && r['클릭수']  != null) ? parseFloat(r['클릭수'])  || null : null;
+
+    // 오픈율·CTR: 소수 비율(0.23...) → ×100 퍼센트 변환
+    const rawOpenRate = (r['오픈율'] !== '' && r['오픈율'] != null) ? parseFloat(r['오픈율']) : NaN;
+    const rawCtr      = (r['CTR']    !== '' && r['CTR']    != null) ? parseFloat(r['CTR'])    : NaN;
+    const openRate = !isNaN(rawOpenRate) ? parseFloat((rawOpenRate < 1 ? rawOpenRate * 100 : rawOpenRate).toFixed(2)) : null;
+    const ctr      = !isNaN(rawCtr)      ? parseFloat((rawCtr      < 1 ? rawCtr      * 100 : rawCtr).toFixed(2))      : null;
 
     if (!client) return null;
     return { year, month, client, product, amount, send, open, click, ctr, openRate, agency, title };
